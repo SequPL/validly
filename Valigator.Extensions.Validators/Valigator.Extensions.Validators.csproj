@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<PackageId>Valigator.Extensions.Validators</PackageId>
+		<Version>1.0.0</Version>
+		<Description>Basic validation rules for Valigator</Description>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="RandomSkunk.RuntimePolyfill" Version="1.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Valigator\Valigator.csproj"/>
+		<ProjectReference Include="..\Valigator.SourceGenerator\Valigator.SourceGenerator\Valigator.SourceGenerator.csproj" 
+						  OutputItemType="Analyzer"
+						  ReferenceOutputAssembly="false"/>
+	</ItemGroup>
+
+</Project>
