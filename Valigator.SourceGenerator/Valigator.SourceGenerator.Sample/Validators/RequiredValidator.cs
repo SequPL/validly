@@ -5,8 +5,8 @@ namespace Valigator.SourceGenerator.Sample.Validators;
 
 /// <summary></summary>
 /// <param name="allowEmptyStrings">If true, empty strings are considered valid values.</param>
-[ValidatorDescription("is required")]
 [Validator]
+[ValidatorDescription("is required")]
 public class RequiredValidator(bool allowEmptyStrings = false) : Validator
 {
 	/// <inheritdoc />

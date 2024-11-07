@@ -3,7 +3,7 @@ using Valigator.Validators;
 namespace Valigator.Extensions.Validators.Strings;
 
 /// <summary>
-/// TODO: Add description
+/// Validator that checks if the length of a string is at least a specified minimum length.
 /// </summary>
 [Validator]
 [ValidationAttribute(typeof(MinLengthAttribute))]

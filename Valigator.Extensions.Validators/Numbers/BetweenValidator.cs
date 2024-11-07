@@ -1,21 +1,21 @@
 using Valigator.Validators;
 
-namespace Valigator.Extensions.Validators.Common;
+namespace Valigator.Extensions.Validators.Numbers;
 
 /// <summary>
-/// Validator that checks if a numeric value or string length is within a specified range (inclusive)
+/// Validator that checks if a numeric value is within a specified range (inclusive)
 /// </summary>
 [Validator]
-[ValidationAttribute(typeof(RangeAttribute))]
+[ValidationAttribute(typeof(BetweenAttribute))]
 [ValidatorDescription("must be between {0} and {1}")]
-public class RangeValidator : Validator
+public class BetweenValidator : Validator
 {
 	private readonly decimal _min;
 	private readonly decimal _max;
 
 	/// <param name="min">The minimum allowed value.</param>
 	/// <param name="max">The maximum allowed value.</param>
-	public RangeValidator(decimal min, decimal max)
+	public BetweenValidator(decimal min, decimal max)
 	{
 		_min = min;
 		_max = max;
@@ -23,7 +23,7 @@ public class RangeValidator : Validator
 
 	/// <param name="min">The minimum allowed value.</param>
 	/// <param name="max">The maximum allowed value.</param>
-	public RangeValidator(int min, int max)
+	public BetweenValidator(int min, int max)
 	{
 		_min = min;
 		_max = max;
@@ -31,7 +31,7 @@ public class RangeValidator : Validator
 
 	/// <param name="min">The minimum allowed value.</param>
 	/// <param name="max">The maximum allowed value.</param>
-	public RangeValidator(double min, double max)
+	public BetweenValidator(double min, double max)
 	{
 		_min = (decimal)min;
 		_max = (decimal)max;
@@ -50,8 +50,8 @@ public class RangeValidator : Validator
 			if (stringValue.Length < _min || stringValue.Length > _max)
 			{
 				yield return new ValidationMessage(
-					"Length must be between {0} and {1}.",
-					"Valigator.Validations.Range",
+					"Value must be between {0} and {1}.",
+					"Valigator.Validations.Between",
 					_min,
 					_max
 				);
@@ -64,7 +64,7 @@ public class RangeValidator : Validator
 		{
 			yield return new ValidationMessage(
 				"Must be between {0} and {1}.",
-				"Valigator.Validations.Range",
+				"Valigator.Validations.Between",
 				_min,
 				_max
 			);
@@ -73,5 +73,5 @@ public class RangeValidator : Validator
 }
 
 #pragma warning disable CS1591 // Comment is on source-generated part
-public partial class RangeAttribute;
+public partial class BetweenAttribute;
 #pragma warning restore CS1591
