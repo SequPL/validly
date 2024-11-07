@@ -7,12 +7,4 @@ namespace Valigator;
 /// It serves as a marker for a source generator to know that the class is validatable.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class)]
-public class ValidatableAttribute : Attribute { }
-
-// [AttributeUsage(AttributeTargets.Class)]
-// public class ValidatableAttribute<TMessage> : ValidatableAttribute
-// 	where TMessage : notnull
-// {
-// 	// TODO: Je potřeba?
-// 	// private readonly Type _messageType = typeof(TMessage);
-// }
+public class ValidatableAttribute : Attribute;

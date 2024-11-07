@@ -1,4 +1,6 @@
-namespace Valigator.SourceGenerator.Validatables;
+using Valigator.SourceGenerator.Utils;
+
+namespace Valigator.SourceGenerator.Validatables.ObjectDtos;
 
 internal class ObjectProperties
 {

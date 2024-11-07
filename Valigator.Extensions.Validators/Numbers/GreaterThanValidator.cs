@@ -6,6 +6,7 @@ namespace Valigator.Extensions.Validators.Numbers;
 /// Validator that checks if a value is greater than a specified minimum
 /// </summary>
 [Validator]
+[ValidationAttribute(typeof(GreaterThanAttribute))]
 public class GreaterThanValidator : Validator
 {
 	private readonly decimal _min;
@@ -41,5 +42,6 @@ public class GreaterThanValidator : Validator
 	}
 }
 
-// [AttributeUsage(AttributeTargets.Property)]
-// public class MinLengthAttribute(int minLength) : ValidatorAttribute(typeof(MinLengthValidator)) { }
+#pragma warning disable CS1591 // Comment is on source-generated part
+public partial class GreaterThanAttribute;
+#pragma warning restore CS1591

@@ -14,14 +14,4 @@ public class PropertyValidationResult
 	/// Error messages generated during validation
 	/// </summary>
 	public IReadOnlyCollection<ValidationMessage> Messages { get; init; } = [];
-
-	// public static PropertyValidationResult Error<TMessage>(string propertyName, TMessage value)
-	// 	where TMessage : notnull
-	// {
-	// 	return new PropertyValidationResult()
-	// 	{
-	// 		PropertyName = propertyName,
-	// 		Messages =
-	// 	}
-	// }
 }

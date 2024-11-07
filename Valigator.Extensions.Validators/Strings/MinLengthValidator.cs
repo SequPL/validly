@@ -6,6 +6,7 @@ namespace Valigator.Extensions.Validators.Strings;
 /// TODO: Add description
 /// </summary>
 [Validator]
+[ValidationAttribute(typeof(MinLengthAttribute))]
 public class MinLengthValidator : Validator
 {
 	private readonly int _minLength;
@@ -31,5 +32,6 @@ public class MinLengthValidator : Validator
 	}
 }
 
-// [AttributeUsage(AttributeTargets.Property)]
-// public class MinLengthAttribute(int minLength) : ValidatorAttribute(typeof(MinLengthValidator)) { }
+#pragma warning disable CS1591 // Comment is on source-generated part
+public partial class MinLengthAttribute;
+#pragma warning restore CS1591

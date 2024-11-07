@@ -1,4 +1,4 @@
-namespace Valigator;
+namespace Valigator.Validators;
 
 /// <summary>
 /// Mark parameters of validators' constructors with this attribute to indicate that they should be resolved as an expression

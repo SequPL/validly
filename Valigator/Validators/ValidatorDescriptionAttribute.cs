@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Valigator;
+namespace Valigator.Validators;
 
 /// <summary>
 /// Description of a validator

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Valigator.SourceGenerator;
+namespace Valigator.SourceGenerator.Utils;
 
 /// <summary>
 /// Polyfill for HashCode

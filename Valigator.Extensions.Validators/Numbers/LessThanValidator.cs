@@ -3,9 +3,10 @@ using Valigator.Validators;
 namespace Valigator.Extensions.Validators.Numbers;
 
 /// <summary>
-/// Validator that checks if a value is less than a specified maximum.
+/// Validator that checks if a value is less than a specified maximum
 /// </summary>
 [Validator]
+[ValidationAttribute(typeof(LessThanAttribute))]
 public class LessThanValidator : Validator
 {
 	private readonly decimal _max;
@@ -33,3 +34,7 @@ public class LessThanValidator : Validator
 		}
 	}
 }
+
+#pragma warning disable CS1591 // Comment is on source-generated part
+public partial class LessThanAttribute;
+#pragma warning restore CS1591

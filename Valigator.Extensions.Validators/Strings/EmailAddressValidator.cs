@@ -3,10 +3,13 @@ using Valigator.Validators;
 namespace Valigator.Extensions.Validators.Strings;
 
 /// <summary>
-/// TODO: Add description
+/// Validator that checks if a value is a valid email address format.
+/// This validator ensures that the input contains exactly one '@' character, with characters on both sides.
+/// Typically used to validate that a property contains a properly formatted email address.
 /// </summary>
-[ValidatorDescription("must be a valid email address")]
 [Validator]
+[ValidationAttribute(typeof(EmailAddressAttribute))]
+[ValidatorDescription("must be a valid email address")]
 public class EmailAddressValidator : Validator
 {
 	/// <inheritdoc />
@@ -38,5 +41,6 @@ public class EmailAddressValidator : Validator
 	}
 }
 
-// [Validator(typeof(EmailAddressValidator)), AttributeUsage(AttributeTargets.Property)]
-// public class EmailAddressAttribute();
+#pragma warning disable CS1591 // Comment is on source-generated part
+public partial class EmailAddressAttribute;
+#pragma warning restore CS1591

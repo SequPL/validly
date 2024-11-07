@@ -1,4 +1,4 @@
-namespace Valigator;
+namespace Valigator.Validators;
 
 /// <summary>
 /// Marks a class as a validator

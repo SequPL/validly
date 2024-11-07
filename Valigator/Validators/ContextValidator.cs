@@ -3,7 +3,7 @@ namespace Valigator.Validators;
 /// <summary>
 /// Base class for validators requiring ValidationContext (provides IServiceProvider for dependency injection
 /// </summary>
-public abstract class ContextValidator
+public abstract class ContextValidator : IContextValidator
 {
 	/// <summary>
 	/// Validates the value

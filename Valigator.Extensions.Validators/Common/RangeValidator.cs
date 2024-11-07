@@ -3,9 +3,11 @@ using Valigator.Validators;
 namespace Valigator.Extensions.Validators.Common;
 
 /// <summary>
-/// Validator that checks if a numeric value or string length is within a specified range (inclusive).
+/// Validator that checks if a numeric value or string length is within a specified range (inclusive)
 /// </summary>
 [Validator]
+[ValidationAttribute(typeof(RangeAttribute))]
+[ValidatorDescription("must be between {0} and {1}")]
 public class RangeValidator : Validator
 {
 	private readonly decimal _min;
@@ -13,11 +15,26 @@ public class RangeValidator : Validator
 
 	/// <param name="min">The minimum allowed value.</param>
 	/// <param name="max">The maximum allowed value.</param>
-	[ValidatorDescription("must be between {0} and {1}")]
 	public RangeValidator(decimal min, decimal max)
 	{
 		_min = min;
 		_max = max;
+	}
+
+	/// <param name="min">The minimum allowed value.</param>
+	/// <param name="max">The maximum allowed value.</param>
+	public RangeValidator(int min, int max)
+	{
+		_min = min;
+		_max = max;
+	}
+
+	/// <param name="min">The minimum allowed value.</param>
+	/// <param name="max">The maximum allowed value.</param>
+	public RangeValidator(double min, double max)
+	{
+		_min = (decimal)min;
+		_max = (decimal)max;
 	}
 
 	/// <inheritdoc />
@@ -54,3 +71,7 @@ public class RangeValidator : Validator
 		}
 	}
 }
+
+#pragma warning disable CS1591 // Comment is on source-generated part
+public partial class RangeAttribute;
+#pragma warning restore CS1591

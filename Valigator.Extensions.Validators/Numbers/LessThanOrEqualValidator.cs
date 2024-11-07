@@ -6,6 +6,7 @@ namespace Valigator.Extensions.Validators.Numbers;
 /// Validator that checks if a value is less than or equal to a specified maximum.
 /// </summary>
 [Validator]
+[ValidationAttribute(typeof(LessThanOrEqualAttribute))]
 public class LessThanOrEqualValidator : Validator
 {
 	private readonly decimal _max;
@@ -37,3 +38,7 @@ public class LessThanOrEqualValidator : Validator
 		}
 	}
 }
+
+#pragma warning disable CS1591 // Comment is on source-generated part
+public partial class LessThanOrEqualAttribute;
+#pragma warning restore CS1591

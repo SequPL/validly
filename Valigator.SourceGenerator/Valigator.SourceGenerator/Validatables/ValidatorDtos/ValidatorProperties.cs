@@ -1,6 +1,6 @@
 using Valigator.SourceGenerator.Utils;
 
-namespace Valigator.SourceGenerator.ValidatorAttributes;
+namespace Valigator.SourceGenerator.Validatables.ValidatorDtos;
 
 internal class ValidatorProperties
 {
@@ -8,11 +8,6 @@ internal class ValidatorProperties
 	/// Usings from the validator's file
 	/// </summary>
 	public EquatableArray<string> Usings { get; init; } = EquatableArray<string>.Empty;
-
-	/// <summary>
-	/// Item per constructor. Item is parameters syntax (eg "int min, int max")
-	/// </summary>
-	public EquatableArray<string> Ctors { get; init; } = EquatableArray<string>.Empty;
 
 	/// <summary>
 	/// Namespace of the validator
@@ -25,9 +20,12 @@ internal class ValidatorProperties
 	public string Name { get; init; } = string.Empty;
 
 	/// <summary>
-	/// Name of the validator
+	/// Fully qualified name of the paired validation attribute
 	/// </summary>
-	public string ValidatorName { get; init; } = string.Empty;
+	public string PairedValidationAttributeFullyQualifiedName { get; init; } = string.Empty;
 
-	// public string? DocComment { get; init; }
+	/// <summary>
+	/// True if the validator requires a ValidationContext
+	/// </summary>
+	public bool RequiresContext { get; init; }
 }

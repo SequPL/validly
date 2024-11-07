@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Valigator.SourceGenerator.Utils;
 
 namespace Valigator.SourceGenerator.ValidatorAttributes;
 
@@ -11,13 +11,14 @@ public class ValidatorAttributesSourceGenerator : IIncrementalGenerator
 {
 	public void Initialize(IncrementalGeneratorInitializationContext initContext)
 	{
-		IncrementalValuesProvider<ValidatorProperties?> validatorAttributesToGenerate = initContext
+		IncrementalValuesProvider<ValidatorProperties> validatorAttributesToGenerate = initContext
 			.SyntaxProvider.ForAttributeWithMetadataName(
-				"Valigator.ValidatorAttribute",
+				Consts.ValidatorFullyQualifiedName,
 				predicate: static (node, _) => node is ClassDeclarationSyntax,
-				transform: static (ctx, _) => GetValidatorProperties(ctx.SemanticModel, ctx.TargetNode)
+				transform: static (ctx, cancellationToken) =>
+					GetValidatorProperties(ctx.SemanticModel, ctx.TargetNode, cancellationToken)
 			)
-			.Where(static m => m is not null);
+			.WhereNotNull();
 
 		initContext.RegisterSourceOutput(
 			validatorAttributesToGenerate,
@@ -26,9 +27,13 @@ public class ValidatorAttributesSourceGenerator : IIncrementalGenerator
 		);
 	}
 
-	private static ValidatorProperties? GetValidatorProperties(SemanticModel semanticModel, SyntaxNode targetNode)
+	private static ValidatorProperties? GetValidatorProperties(
+		SemanticModel semanticModel,
+		SyntaxNode targetNode,
+		CancellationToken cancellationToken
+	)
 	{
-		if (semanticModel.GetDeclaredSymbol(targetNode) is not INamedTypeSymbol typeSymbol)
+		if (semanticModel.GetDeclaredSymbol(targetNode, cancellationToken) is not INamedTypeSymbol typeSymbol)
 		{
 			return null;
 		}
@@ -38,12 +43,10 @@ public class ValidatorAttributesSourceGenerator : IIncrementalGenerator
 			return null;
 		}
 
-		var usings = classDeclarationSyntax.Parent?.Parent is CompilationUnitSyntax cus
-			? cus.Usings.ToArray()
-			: Array.Empty<UsingDirectiveSyntax>();
+		var usings = classDeclarationSyntax.Parent?.Parent is CompilationUnitSyntax cus ? cus.Usings.ToArray() : [];
 
 		var ctors = classDeclarationSyntax
-			.SyntaxTree.GetRoot()
+			.SyntaxTree.GetRoot(cancellationToken)
 			.DescendantNodes()
 			.OfType<ConstructorDeclarationSyntax>();
 
@@ -54,17 +57,14 @@ public class ValidatorAttributesSourceGenerator : IIncrementalGenerator
 				ctors.Select(ctor => ctor.ParameterList.Parameters.ToString()).ToArray()
 			),
 			Name = typeSymbol.Name.Replace("Validator", ""),
+			ValidatorName = typeSymbol.Name,
 			Namespace = typeSymbol.ContainingNamespace.ToString(),
+			// DocComment = typeSymbol.GetDocumentationCommentXml(cancellationToken: cancellationToken),
 		};
 	}
 
-	private static void Execute(ValidatorProperties? validatorProperties, SourceProductionContext context)
+	private static void Execute(ValidatorProperties validatorProperties, SourceProductionContext context)
 	{
-		if (validatorProperties is null)
-		{
-			return;
-		}
-
 		var constructors = validatorProperties.Ctors.Select(ctor =>
 			$"public {validatorProperties.Name}Attribute({ctor}) {{ }}"
 		);
@@ -78,8 +78,8 @@ public class ValidatorAttributesSourceGenerator : IIncrementalGenerator
 
 namespace {validatorProperties.Namespace}
 {{
-	[System.AttributeUsage(AttributeTargets.Property)]
-	public class {validatorProperties.Name}Attribute : System.Attribute
+	[global::System.AttributeUsage(global::System.AttributeTargets.Property)]
+	public partial class {validatorProperties.Name}Attribute : global::System.Attribute
     {{
 		{string.Join("\n\t\t", constructors)}
     }}

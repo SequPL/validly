@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Immutable;
 
-namespace Valigator.SourceGenerator;
+namespace Valigator.SourceGenerator.Utils;
 
 /// <summary>
 /// An immutable, equatable array. This is equivalent to <see cref="ImmutableArray{T}"/> but with value equality support.
