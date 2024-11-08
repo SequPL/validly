@@ -7,15 +7,27 @@ namespace Valigator.Extensions.Validators.Numbers;
 /// </summary>
 [Validator]
 [ValidationAttribute(typeof(LessThanAttribute))]
+[ValidatorDescription("must be less than {0}")]
 public class LessThanValidator : Validator
 {
 	private readonly decimal _max;
 
 	/// <param name="max">The maximum value.</param>
-	[ValidatorDescription("must be less than {0}")]
 	public LessThanValidator(decimal max)
 	{
 		_max = max;
+	}
+
+	/// <param name="max">The maximum value.</param>
+	public LessThanValidator(int max)
+	{
+		_max = max;
+	}
+
+	/// <param name="max">The maximum value.</param>
+	public LessThanValidator(double max)
+	{
+		_max = (decimal)max;
 	}
 
 	/// <inheritdoc />

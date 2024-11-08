@@ -15,29 +15,14 @@ namespace Valigator.SourceGenerator.Validatables;
 [Generator]
 public class ValidatableSourceGenerator : IIncrementalGenerator
 {
-	private static readonly SymbolDisplayFormat QualifiedNameArityFormat = new SymbolDisplayFormat(
-		globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-		typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces
-	);
+	private static readonly SymbolDisplayFormat QualifiedNameArityFormat =
+		new(
+			globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+			typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces
+		);
 
 	public void Initialize(IncrementalGeneratorInitializationContext initContext)
 	{
-		// var validatablesToGenerate = initContext
-		// 	.SyntaxProvider.ForAttributeWithMetadataName(
-		// 		"Valigator.ValidatableAttribute",
-		// 		predicate: static (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
-		// 		transform: static (ctx, cancellationToken) =>
-		// 			GetObjectProperties(ctx.SemanticModel, ctx.TargetNode, cancellationToken)
-		// 	)
-		// 	.WhereNotNull();
-		// var allSyntaxTrees = initContext.GetAllSyntaxTreesProvider();
-		//
-		// initContext.Seman
-
-		// var validatablesToGenerate = initContext
-		// 	.SyntaxProvider.CreateSyntaxProvider(IsValidatableClassOrRecord, GetObjectProperties)
-		// 	.WhereNotNull();
-
 		var validatablesToGenerate = initContext
 			.SyntaxProvider.ForAttributeWithMetadataName(
 				"Valigator.ValidatableAttribute",
@@ -45,6 +30,8 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				transform: static (context, cancellationToken) => GetObjectProperties(context, cancellationToken)
 			)
 			.WhereNotNull()
+			// TODO: Replace SyntaxProvider.ForAttributeWithMetadataName with CompilationProvider
+			// .Combine(initContext.CompilationProvider.SelectMany((compilation, cancellationToken) => compilation.SourceModule.ReferencedAssemblySymbols.SelectMany(s => s.GlobalNamespace.GetTypeMembers().Where(t => t.GetAttributes().Any(attr => attr.AttributeClass?.ToDisplayString(QualifiedNameArityFormat) == Consts.ValidatorFullyQualifiedName)))))
 			.Combine(
 				initContext
 					.SyntaxProvider.ForAttributeWithMetadataName(
@@ -55,24 +42,12 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 					.WhereNotNull()
 					.Collect()
 			)
-			// .Combine(
-			// 	initContext
-			// 		.SyntaxProvider.ForAttributeWithMetadataName(
-			// 			"Valigator.ValidatorAttributeAttribute",
-			// 			predicate: static (node, _) => node is ClassDeclarationSyntax,
-			// 			transform: GetValidatorAttributeProperties
-			// 		)
-			// 		.WhereNotNull()
-			// 		.Collect()
-			// )
-			.Combine(initContext.CompilationProvider)
-			.Select((combined, cancellationToken) => (combined.Right, combined.Left.Left, combined.Left.Right));
-		// .Select((combined, cancellationToken) => (combined.Left, combined.Right));
+			// .Select((combined, cancellationToken) => (combined.Right/*, combined.Left.Left*/, combined.Left.Right))
+			.Select((combined, cancellationToken) => (combined.Left, combined.Right));
 
 		initContext.RegisterSourceOutput(
 			validatablesToGenerate,
-			static (sourceProductionContext, objectProperties) =>
-				ExecuteValidatorGeneration(objectProperties, sourceProductionContext)
+			(context, properties) => ExecuteValidatorGeneration(context, properties)
 		);
 	}
 
@@ -81,14 +56,12 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		CancellationToken cancellationToken
 	)
 	{
-		// SemanticModel semanticModel = context.SemanticModel;
-		SyntaxNode targetNode = context.TargetNode;
-		ISymbol symbol = context.TargetSymbol;
+		Debug.Assert(context.TargetNode is ClassDeclarationSyntax or RecordDeclarationSyntax);
 
-		Debug.Assert(targetNode is ClassDeclarationSyntax or RecordDeclarationSyntax);
-
-		if (symbol is not INamedTypeSymbol typeSymbol)
-		// if (semanticModel.GetDeclaredSymbol(targetNode) is not INamedTypeSymbol typeSymbol)
+		if (
+			context.TargetSymbol is not INamedTypeSymbol typeSymbol
+			|| context.TargetNode is not TypeDeclarationSyntax targetNode
+		)
 		{
 			return null;
 		}
@@ -103,7 +76,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			Usings = new EquatableArray<string>(usings.Select(usingSyntax => usingSyntax.ToString()).ToArray()),
 			Namespace = typeSymbol.ContainingNamespace.ToString(),
 			Name = typeSymbol.Name,
-			RequiresContext = typeSymbol.Interfaces.Any(ifce =>
+			RequiresContext = typeSymbol.AllInterfaces.Any(ifce =>
 				ifce.ToDisplayString(QualifiedNameArityFormat) == Consts.IContextValidatorFullyQualifiedName
 			),
 			PairedValidationAttributeFullyQualifiedName =
@@ -118,32 +91,29 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		};
 	}
 
-	// private static ObjectProperties? GetObjectProperties(SemanticModel semanticModel, SyntaxNode targetNode)
 	private static ObjectProperties? GetObjectProperties(
 		GeneratorAttributeSyntaxContext context,
-		// GeneratorSyntaxContext context,
 		CancellationToken cancellationToken
 	)
 	{
 		SemanticModel semanticModel = context.SemanticModel;
-		SyntaxNode targetNode = context.TargetNode;
 		var symbol = context.TargetSymbol;
 
-		Debug.Assert(targetNode is ClassDeclarationSyntax or RecordDeclarationSyntax);
+		Debug.Assert(context.TargetNode is ClassDeclarationSyntax or RecordDeclarationSyntax);
 
-		if (symbol is not INamedTypeSymbol typeSymbol)
+		if (symbol is not INamedTypeSymbol typeSymbol || context.TargetNode is not TypeDeclarationSyntax targetNode)
 		{
 			return null;
 		}
 
 		var usings = GetUsings(targetNode);
-		var propertyDeclarations = GetPropertyDeclarations(targetNode);
+		var propertyDeclarations = targetNode.Members.OfType<PropertyDeclarationSyntax>();
 
 		var properties = new List<PropertyProperties>();
 
 		foreach (var propertyDeclaration in propertyDeclarations)
 		{
-			var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration);
+			var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
 
 			if (propertySymbol is null)
 			{
@@ -190,77 +160,6 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				)
 				.ToArray();
 
-			// var attributes = propertyDeclaration
-			// 	.AttributeLists.SelectMany(attributeList => attributeList.Attributes)
-			// 	//.Where(attribute =>
-			// 	//	semanticModel
-			// 	//		.GetTypeInfo(attribute)
-			// 	//		.Type?.GetAttributes()
-			// 	//		.Any(x =>
-			// 	//			x.AttributeClass?.ToDisplayString(QualifiedNameArityFormat)
-			// 	//			== Consts.ValidatorFullyQualifiedName
-			// 	//		) ?? false
-			// 	//)
-			// 	.Select(attribute =>
-			// 	{
-			// 		//var dec = semanticModel.GetTypeInfo(attribute);
-			// 		var attributeSymbol = semanticModel.GetDeclaredSymbol(attribute);
-			//
-			// 		//if (attributeSymbol is null)
-			// 		//{
-			// 		//	return null;
-			// 		//}
-			//
-			// 		return new ValidationAttributeProperties(
-			// 			attributeSymbol?.ToDisplayString(QualifiedNameArityFormat) ?? string.Empty,
-			// 			attribute.ArgumentList?.Arguments.ToString() ?? string.Empty
-			// 		// attribute
-			// 		);
-			// 	})
-			// 	.WhereNotNull()
-			// 	.ToArray();
-
-			// var xx = propertyDeclaration
-			// 	.AttributeLists.SelectMany(attributeList => attributeList.Attributes)
-			// 	.Select(attribute => new
-			// 	{
-			// 		attribute,
-			// 		attributes = semanticModel.GetTypeInfo(attribute).Type?.GetAttributes().ToList(),
-			// 		qualifiedNames = semanticModel
-			// 			.GetTypeInfo(attribute)
-			// 			.Type?.GetAttributes()
-			// 			.Select(x => x.AttributeClass?.ToDisplayString(QualifiedNameArityFormat))
-			// 			.ToList(),
-			// 	});
-
-			// var validatorAttributes = propertyDeclaration
-			// 	.AttributeLists.SelectMany(attributeList => attributeList.Attributes)
-			// 	.Where(attribute =>
-			// 		semanticModel
-			// 			.GetTypeInfo(attribute)
-			// 			.Type?.GetAttributes()
-			// 			.Any(x =>
-			// 				x.AttributeClass?.ToDisplayString(QualifiedNameArityFormat)
-			// 				== Consts.ValidatorFullyQualifiedName
-			// 			) ?? false
-			// 	)
-			// 	.Select(attribute =>
-			// 	{
-			// 		var attributeSymbol = semanticModel.GetDeclaredSymbol(attribute);
-			//
-			// 		if (attributeSymbol is null)
-			// 		{
-			// 			return null;
-			// 		}
-			//
-			// 		return new ValidationAttributeProperties(
-			// 			attributeSymbol.ToDisplayString(QualifiedNameArityFormat),
-			// 			attribute.ArgumentList?.Arguments.ToString() ?? string.Empty
-			// 		);
-			// 	})
-			// 	.WhereNotNull()
-			// 	.ToArray();
-
 			properties.Add(
 				new PropertyProperties(
 					propertyDeclaration.Identifier.ValueText,
@@ -270,6 +169,19 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			);
 		}
 
+		var methods = targetNode
+			.Members.OfType<MethodDeclarationSyntax>()
+			.ToDictionary(
+				method => method.Identifier.ValueText,
+				method => new MethodProperties(
+					method.Identifier.ValueText,
+					method.ReturnType.ToString(),
+					method.ParameterList.Parameters.FirstOrDefault()?.Type?.ToString() == "ValidationContext"
+				)
+			);
+
+		methods.TryGetValue("BeforeValidate", out var beforeValidateReturnType);
+
 		return new ObjectProperties
 		{
 			Usings = new EquatableArray<string>(usings.Select(usingSyntax => usingSyntax.ToString()).ToArray()),
@@ -277,61 +189,49 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			Name = typeSymbol.Name,
 			Namespace = typeSymbol.ContainingNamespace.ToString(),
 			Properties = new EquatableArray<PropertyProperties>(properties.ToArray()),
+			Methods = new EquatableArray<MethodProperties>(methods.Values.ToArray()),
+			HasBeforeValidate = beforeValidateReturnType is not null,
+			BeforeValidateReturnType = beforeValidateReturnType?.ReturnType switch
+			{
+				"IEnumerable<ValidationMessage>" => BeforeValidateReturnType.Enumerable,
+				"ValidationResult" or "ValidationResult?" => BeforeValidateReturnType.ValidationResult,
+				_ => BeforeValidateReturnType.Void,
+			},
+			HasAfterValidate = methods.ContainsKey("AfterValidate"),
 		};
 	}
 
-	private static IEnumerable<PropertyDeclarationSyntax> GetPropertyDeclarations(SyntaxNode targetNode)
-	{
-		IEnumerable<PropertyDeclarationSyntax> propertyDeclarations = targetNode
-			is ClassDeclarationSyntax classDeclarationSyntax
-			? classDeclarationSyntax.Members.OfType<PropertyDeclarationSyntax>()
-			: ((RecordDeclarationSyntax)targetNode).Members.OfType<PropertyDeclarationSyntax>();
-		return propertyDeclarations;
-	}
-
-	private static UsingDirectiveSyntax[] GetUsings(SyntaxNode targetNode)
+	private static UsingDirectiveSyntax[] GetUsings(TypeDeclarationSyntax targetNode)
 	{
 		var usings = targetNode.Parent?.Parent is CompilationUnitSyntax cus ? cus.Usings.ToArray() : [];
 		return usings;
 	}
 
 	private static void ExecuteValidatorGeneration(
-		(
-			Compilation Compilation,
-			ObjectProperties Object,
-			ImmutableArray<ValidatorProperties> Validators
-		// ImmutableArray<ValidatorAttributeProperties> ValidatorsAttributes
-		) properties,
-		SourceProductionContext context
+		SourceProductionContext context,
+		(ObjectProperties Object, ImmutableArray<ValidatorProperties> Validators) properties
 	)
 	{
-		// 		if (validatorProperties is null)
-		// 		{
-		// 			return;
-		// 		}
-		//
-		// 		var constructors = validatorProperties.Ctors.Select(ctor =>
-		// 			$"public {validatorProperties.Name}Attribute({ctor}) {{ }}"
-		// 		);
-		//
+		// properties.Validators = context.Compilation.SourceModule.ReferencedAssemblySymbols
 
 		bool hasContext = false;
 		bool hasCustomValidation = false;
 		string customValidationInterfaceSourceText = string.Empty;
 
-		var validatorRules = new List<string>();
+		var validatorRules = new FilePart();
 		var ruleValidateCalls = new List<string>();
-		var customValidationMethodsForInterface = new List<string>();
+		var customValidationMethodsForInterface = new FilePart();
 
 		// Name of the class with RULEs
 		string rulesClassName = $"{properties.Object.Name}Rules";
+		string customValidatorInterfaceName = $"I{properties.Object.Name}CustomValidation";
 
 		// Generate stuff for each property
 		foreach (PropertyProperties property in properties.Object.Properties)
 		{
 			ProcessValidatorProperty(
 				property,
-				properties.Compilation,
+				properties.Object,
 				properties.Validators,
 				validatorRules,
 				ruleValidateCalls,
@@ -343,32 +243,75 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		}
 
 		// Create separated class with rules; so it's not visible in the original object
-		var validatorRulesClassBuilder = SourceTextBuilder
-			.CreateClass(rulesClassName)
-			.Static()
-			.SetAccessModifier("file")
-			.SetNamespace(properties.Object.Namespace);
+		var validatorRulesClassBuilder = CreateValidatorRulesClassBuilder(
+			properties.Object,
+			rulesClassName,
+			validatorRules
+		);
+
+		var validateMethodFilePart = new FilePart()
+			.AppendLine("/// <summary>Validate the object.</summary>")
+			.Append("public ValidationResult Validate(");
+
+		if (hasContext)
+		{
+			validateMethodFilePart.Append("ValidationContext context");
+		}
+
+		validateMethodFilePart.AppendLine(")").AppendLine("{");
+
+		if (hasCustomValidation)
+		{
+			validateMethodFilePart
+				.AppendLine($"\tvar customValidator = ({customValidatorInterfaceName})this;")
+				.AppendLine();
+		}
+
+		// BeforeValidate hook
+		AppendBeforeValidateHook(properties.Object, validateMethodFilePart);
+
+		validateMethodFilePart
+			.AppendLine("\tvar result = new ValidationResult(")
+			.AppendLine($"\t\t[]{(ruleValidateCalls.Count == 0 ? string.Empty : ",")}");
+
+		int ruleValidateCallsCount = ruleValidateCalls.Count;
+		foreach (string validateCall in ruleValidateCalls)
+		{
+			ruleValidateCallsCount--;
+
+			validateMethodFilePart.AppendLine(
+				$"\t\t{validateCall}{(ruleValidateCallsCount == 0 ? string.Empty : ",")}"
+			);
+		}
+		validateMethodFilePart.AppendLine("\t);").AppendLine();
+
+		// AfterValidate hook
+		AppendAfterValidateHook(properties, validateMethodFilePart);
+
+		validateMethodFilePart.AppendLine("\treturn result;");
+		validateMethodFilePart.AppendLine("}");
 
 		// Generate the validator part for the original object
 		var validatorClassBuilder = SourceTextBuilder
 			.CreateClassOrRecord(properties.Object.ClassOrRecordKeyword, properties.Object.Name)
 			.Partial()
 			.AddUsings(properties.Object.Usings.GetArray() ?? [])
-			.SetNamespace(properties.Object.Namespace);
+			.SetNamespace(properties.Object.Namespace)
+			.AddMember(validateMethodFilePart);
 
 		// If custom validation is used, generate the interface and add it to the validator class
 		if (hasCustomValidation)
 		{
 			var customValidationInterface = SourceTextBuilder
-				.CreateInterface($"I{properties.Object.Name}CustomValidation")
-				.SetAccessModifier("file")
+				.CreateInterface(customValidatorInterfaceName)
+				.SetAccessModifier("internal")
 				.SetNamespace(properties.Object.Namespace);
 
 			// Add MEMBERS
-			AddCustomValidationMethodsToInterface(customValidationMethodsForInterface, customValidationInterface);
+			customValidationInterface.AddMember(customValidationMethodsForInterface);
 
 			// Add the interface on validator part of the original object
-			validatorClassBuilder.AddInterfaces($"I{properties.Object.Name}CustomValidation");
+			validatorClassBuilder.AddInterfaces(customValidatorInterfaceName);
 
 			customValidationInterfaceSourceText = customValidationInterface.Build();
 		}
@@ -384,38 +327,69 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		context.AddSource($"{properties.Object.Name}.Validator.g.cs", SourceText.From(validator, Encoding.UTF8));
 	}
 
-	private static void AddCustomValidationMethodsToInterface(
-		List<string> customValidationMethodsForInterface,
-		SourceTextBuilder customValidationInterface
+	private static void AppendAfterValidateHook(
+		(ObjectProperties Object, ImmutableArray<ValidatorProperties> Validators) properties,
+		FilePart validateMethodFilePart
 	)
 	{
-		var membersFilePart = new FilePart();
-
-		foreach (string customValidationMethod in customValidationMethodsForInterface)
+		if (properties.Object.HasAfterValidate)
 		{
-			membersFilePart.AppendLine(customValidationMethod);
+			validateMethodFilePart.AppendLine("\tresult = AfterValidate(result);").AppendLine();
 		}
+	}
 
-		customValidationInterface.AddMember(membersFilePart);
+	private static void AppendBeforeValidateHook(ObjectProperties objectProperties, FilePart validateMethodFilePart)
+	{
+		if (objectProperties.HasBeforeValidate)
+		{
+			if (objectProperties.BeforeValidateReturnType == BeforeValidateReturnType.Void)
+			{
+				validateMethodFilePart.AppendLine("\tBeforeValidate();");
+			}
+			else
+			{
+				validateMethodFilePart
+					.AppendLine(
+						"\tvar beforeResult = global::Valigator.Utils.ValidationResultHelper.ToValidationResult(BeforeValidate());"
+					)
+					.AppendLine("\tif (beforeResult is not null) return beforeResult;")
+					.AppendLine();
+			}
+		}
+	}
+
+	private static SourceTextBuilder CreateValidatorRulesClassBuilder(
+		ObjectProperties objectProperties,
+		string rulesClassName,
+		FilePart validatorRules
+	)
+	{
+		return SourceTextBuilder
+			.CreateClass(rulesClassName)
+			.Static()
+			.SetAccessModifier("file")
+			.SetNamespace(objectProperties.Namespace)
+			.AddMember(validatorRules);
 	}
 
 	private static void ProcessValidatorProperty(
 		PropertyProperties property,
-		Compilation compilation,
+		ObjectProperties objectProperties,
 		ImmutableArray<ValidatorProperties> validators,
-		List<string> validatorRules,
+		FilePart validatorRules,
 		List<string> ruleValidateCalls,
-		List<string> customValidationMethodsForInterface,
+		FilePart customValidationMethodsForInterface,
 		string rulesClassName,
 		ref bool hasContext,
 		ref bool hasCustomValidation
 	)
 	{
 		bool thisRuleHasCustomValidation = false;
+		bool thisHasContext = false;
 
-		var ruleBuilder = new StringBuilder()
+		validatorRules
 			.AppendLine($"internal static readonly PropertyRule<{property.PropertyType}> {property.PropertyName}Rule")
-			.AppendLine($"\t= new PropertyRuleBuilder<{property.PropertyType}>({property.PropertyName})");
+			.AppendLine($"\t= new PropertyRuleBuilder<{property.PropertyType}>(\"{property.PropertyName}\")");
 
 		foreach (var validationAttribute in property.ValidationAttributes)
 		{
@@ -438,75 +412,43 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 			if (validator.RequiresContext)
 			{
-				hasContext = true;
+				hasContext = thisHasContext = true;
 			}
 
-			ruleBuilder.AppendLine(
+			validatorRules.AppendLine(
 				$"\t\t.Use(new global::{validator.Namespace}.{validator.Name}({validationAttribute.Arguments}))"
 			);
 		}
 
-		validatorRules.Add(ruleBuilder.Append(".Build();").ToString());
+		validatorRules.AppendLine("\t\t.Build();");
+
+		// Generate invocation `xxRule.Validate()`
+		ruleValidateCalls.Add(
+			$"{rulesClassName}.{property.PropertyName}Rule.Validate("
+				+ $"{property.PropertyName}, "
+				+ $"{(thisHasContext ? "context" : "null")}"
+				+ (thisRuleHasCustomValidation ? $", customValidator.Validate{property.PropertyName}" : string.Empty)
+				+ ")"
+		);
 
 		if (thisRuleHasCustomValidation)
 		{
-			// Generate invocation `xxRule.Validate()`
-			ruleValidateCalls.Add(
-				$"{rulesClassName}.{property.PropertyName}Rule.Validate("
-					+ $"{property.PropertyName}, "
-					+ $"{(hasContext ? "context" : "null")}"
-					+ (hasCustomValidation ? $", customValidator.Validate{property.PropertyName}" : string.Empty)
-					+ ")"
+			// Generate CUSTOM validation method to the interface
+			customValidationMethodsForInterface
+				.AppendLine($"/// <summary>Custom validation method for property '{property.PropertyName}'.</summary>")
+				.Append($"IEnumerable<ValidationMessage> Validate{property.PropertyName}(");
+
+			var existingMethod = objectProperties.Methods.FirstOrDefault(m =>
+				m.MethodName == $"Validate{property.PropertyName}"
 			);
 
-			// Generate CUSTOM validation method to the interface
-			customValidationMethodsForInterface.Add(
-				$"IEnumerable<ValidationMessage> Validate{property.PropertyName}();"
-			);
+			if (existingMethod is not null && existingMethod.RequiresContext)
+			{
+				hasContext = true;
+				customValidationMethodsForInterface.Append("global::Valigator.ValidationContext context");
+			}
+
+			customValidationMethodsForInterface.AppendLine(");");
 		}
 	}
-
-	// private ValidatorAttributeProperties? GetValidatorAttributeProperties(
-	// 	GeneratorAttributeSyntaxContext context,
-	// 	CancellationToken cancellationToken
-	// )
-	// {
-	// 	SyntaxNode targetNode = context.TargetNode;
-	// 	var symbol = context.TargetSymbol;
-	//
-	// 	Debug.Assert(targetNode is ClassDeclarationSyntax or RecordDeclarationSyntax);
-	//
-	// 	if (symbol is not INamedTypeSymbol typeSymbol)
-	// 	// if (semanticModel.GetDeclaredSymbol(targetNode) is not INamedTypeSymbol typeSymbol)
-	// 	{
-	// 		return null;
-	// 	}
-	//
-	// 	var usings = GetUsings(targetNode);
-	//
-	// 	return new ValidatorAttributeProperties
-	// 	{
-	// 		Usings = new EquatableArray<string>(usings.Select(usingSyntax => usingSyntax.ToString()).ToArray()),
-	// 		Namespace = typeSymbol.ContainingNamespace.ToString(),
-	// 		Name = typeSymbol.Name,
-	// 	};
-	// }
-
-	// static bool IsValidatableClassOrRecord(SyntaxNode syntaxNode, CancellationToken cancellationToken)
-	// {
-	// 	if (!syntaxNode.IsKind(SyntaxKind.ClassDeclaration) && !syntaxNode.IsKind(SyntaxKind.RecordDeclaration))
-	// 	{
-	// 		return false;
-	// 	}
-	//
-	// 	var classOrRecordDeclaration = (TypeDeclarationSyntax)syntaxNode;
-	//
-	// 	return classOrRecordDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
-	// 		&& classOrRecordDeclaration.AttributeLists.Any(attributeList =>
-	// 			attributeList.Attributes.Any(attribute =>
-	// 				// TODO: Do semantic check for the attribute
-	// 				attribute.Name.ToString().Replace("Attribute", "") == "Validatable"
-	// 			)
-	// 		);
-	// }
 }

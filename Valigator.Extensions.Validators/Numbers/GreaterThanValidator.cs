@@ -7,23 +7,34 @@ namespace Valigator.Extensions.Validators.Numbers;
 /// </summary>
 [Validator]
 [ValidationAttribute(typeof(GreaterThanAttribute))]
+[ValidatorDescription("must be greater than {0}")]
 public class GreaterThanValidator : Validator
 {
 	private readonly decimal _min;
 
-	/// <param name="min"></param>
-	[ValidatorDescription("must be greater than {0}")]
+	/// <param name="min">The minimum value.</param>
 	public GreaterThanValidator(decimal min)
 	{
 		_min = min;
 	}
 
-	/// <param name="expression">Expression used to access a property with the value.</param>
-	[ValidatorDescription("must be greater than {0}")]
-	public GreaterThanValidator([AsExpression] string expression)
+	/// <param name="min">The minimum value.</param>
+	public GreaterThanValidator(int min)
 	{
-		throw new NotImplementedException();
+		_min = min;
 	}
+
+	/// <param name="min">The minimum value.</param>
+	public GreaterThanValidator(double min)
+	{
+		_min = (decimal)min;
+	}
+
+	// /// <param name="expression">Expression used to access a property with the value.</param>
+	// public GreaterThanValidator([AsExpression] string expression)
+	// {
+	// 	throw new NotImplementedException();
+	// }
 
 	/// <inheritdoc />
 	public override IEnumerable<ValidationMessage> IsValid(object? value)

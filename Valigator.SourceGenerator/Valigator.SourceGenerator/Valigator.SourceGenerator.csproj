@@ -11,8 +11,9 @@
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 
-        <RootNamespace>Valigator.SourceGenerator</RootNamespace>
         <PackageId>Valigator.SourceGenerator</PackageId>
+		<Version>1.0.0-alpha</Version>
+		<Description>Source Generator for Valigator validation library</Description>
     </PropertyGroup>
 
     <ItemGroup>

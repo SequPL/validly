@@ -7,15 +7,27 @@ namespace Valigator.Extensions.Validators.Numbers;
 /// </summary>
 [Validator]
 [ValidationAttribute(typeof(GreaterThanOrEqualAttribute))]
+[ValidatorDescription("must be greater than or equal to {0}")]
 public class GreaterThanOrEqualValidator : Validator
 {
 	private readonly decimal _min;
 
 	/// <param name="min">The minimum value.</param>
-	[ValidatorDescription("must be greater than or equal to {0}")]
 	public GreaterThanOrEqualValidator(decimal min)
 	{
 		_min = min;
+	}
+
+	/// <param name="min">The minimum value.</param>
+	public GreaterThanOrEqualValidator(int min)
+	{
+		_min = min;
+	}
+
+	/// <param name="min">The minimum value.</param>
+	public GreaterThanOrEqualValidator(double min)
+	{
+		_min = (decimal)min;
 	}
 
 	/// <inheritdoc />
