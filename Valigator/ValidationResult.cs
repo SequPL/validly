@@ -1,37 +1,47 @@
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 
 namespace Valigator;
 
 /// <summary>
 /// Represents the result of a validation
 /// </summary>
-/// <param name="propertiesResult"></param>
-public class ValidationResult(
-	IEnumerable<ValidationMessage> globalMessages,
-	params PropertyValidationResult[] propertiesResult
-)
+public class ValidationResult
 {
-	private IReadOnlyCollection<ValidationMessage>? _globalMessages;
-	private IReadOnlyCollection<PropertyValidationResult>? _propertiesResult;
+	protected internal IList<ValidationMessage> GlobalMessages;
+	protected internal IList<PropertyValidationResult> PropertiesResult;
 
-	private bool? _valid;
+	private bool? _success;
 
 	/// <summary>
 	/// List of global validation messages
 	/// </summary>
-	public IReadOnlyCollection<ValidationMessage> Global =>
-		_globalMessages ??= globalMessages is ImmutableArray<ValidationMessage> immutableArray
-			? immutableArray
-			: globalMessages.ToImmutableArray();
+	public IReadOnlyCollection<ValidationMessage> Global => new ReadOnlyCollection<ValidationMessage>(GlobalMessages);
 
 	/// <summary>
 	/// List of properties validation results
 	/// </summary>
 	public IReadOnlyCollection<PropertyValidationResult> Properties =>
-		_propertiesResult ??= propertiesResult.ToImmutableArray();
+		new ReadOnlyCollection<PropertyValidationResult>(PropertiesResult);
 
 	/// <summary>
 	/// True if validation was successful
 	/// </summary>
-	public bool Valid => _valid ??= propertiesResult.All(prop => !prop.Messages.Any());
+	public bool Success => _success ??= !Global.Any() && PropertiesResult.All(prop => prop.Success);
+
+	/// <summary>
+	/// Represents the result of a validation
+	/// </summary>
+	/// <param name="globalMessages"></param>
+	/// <param name="propertiesResult"></param>
+	public ValidationResult(IList<ValidationMessage> globalMessages, params PropertyValidationResult[] propertiesResult)
+	{
+		GlobalMessages = globalMessages;
+		PropertiesResult = propertiesResult;
+	}
+
+	internal ValidationResult(IList<ValidationMessage> globalMessages, IList<PropertyValidationResult> propertiesResult)
+	{
+		GlobalMessages = globalMessages;
+		PropertiesResult = propertiesResult;
+	}
 }

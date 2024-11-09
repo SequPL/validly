@@ -16,10 +16,20 @@ public class FilePart
 		return this;
 	}
 
+	public FilePart AppendIf(string text, bool condition)
+	{
+		return condition ? Append(text) : this;
+	}
+
 	public FilePart AppendLine(string text)
 	{
 		CurrentLine.Append(text);
 		return AppendLine();
+	}
+
+	public FilePart AppendLineIf(string text, bool condition)
+	{
+		return condition ? AppendLine(text) : this;
 	}
 
 	public FilePart AppendLine()

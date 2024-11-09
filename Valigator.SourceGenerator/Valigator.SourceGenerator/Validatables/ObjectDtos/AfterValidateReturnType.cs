@@ -1,11 +1,7 @@
 namespace Valigator.SourceGenerator.Validatables.ObjectDtos;
 
-public enum BeforeValidateReturnType
+public enum AfterValidateReturnType
 {
-	Void,
-	Task,
-	Enumerable,
-	AsyncEnumerable,
 	ValidationResult,
 	TaskValidationResult,
 }

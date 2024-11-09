@@ -67,46 +67,49 @@
 // 	}
 // }
 //
-// // // Toto bude generovat source generator
-// // file interface IFooArgsCustomValidator
-// // {
-// // 	IEnumerable<ValidationMessage> ValidateSomeEMail();
-// // }
-// //
-// // public partial class FooArgs : IFooArgsCustomValidator
-// // {
-// // 	private static PropertyRule<string> RequiredStringRule { get; } =
-// // 		new PropertyRuleBuilder<string>("RequiredString")
-// // 			.Use(new RequiredValidator())
-// // 			.Use(new MinLengthValidator(5))
-// // 			.Build();
-// //
-// // 	private static PropertyRule<string> EmailRule { get; } =
-// // 		new PropertyRuleBuilder<string>("SomeEmail").Use(new EmailAddressValidator()).Build();
-// //
-// // 	// public ValidationResult Validate()
-// // 	// {
-// // 	// 	var customValidator = (IFooArgsCustomValidator)this;
-// // 	//
-// // 	// 	return new ValidationResult(
-// // 	// 		// [],
-// // 	// 		RequiredStringRule.Validate(RequiredString, null, customValidator.ValidateRequiredString),
-// // 	// 		EmailRule.Validate(SomeEmail, null)
-// // 	// 	);
-// // 	// }
-// //
-// // 	public ValidationResult Validate(ValidationContext context)
-// // 	{
-// // 		var customValidator = (IFooArgsCustomValidator)this;
-// //
-// // 		return new ValidationResult(
-// // 			[],
-// // 			RequiredStringRule.Validate(RequiredString, context, customValidator.ValidateRequiredString),
-// // 			EmailRule.Validate(SomeEmail, context)
-// // 		);
-// // 	}
-// // }
-// //
+// // Toto bude generovat source generator
+// file interface IFooArgsCustomValidator
+// {
+// 	IEnumerable<ValidationMessage> ValidateSomeEMail();
+// }
+//
+// file class FooArgsRules
+// {
+// 	internal static readonly PropertyRule<string> RequiredStringRule = new PropertyRuleBuilder<string>("RequiredString")
+// 		.Use(new RequiredValidator())
+// 		.Use(new MinLengthValidator(5))
+// 		.Build();
+//
+// 	internal static readonly PropertyRule<string> EmailRule = new PropertyRuleBuilder<string>("SomeEmail")
+// 		.Use(new EmailAddressValidator())
+// 		.Build();
+// }
+//
+// public partial class FooArgs : IFooArgsCustomValidator
+// {
+// 	// public ValidationResult Validate()
+// 	// {
+// 	// 	var customValidator = (IFooArgsCustomValidator)this;
+// 	//
+// 	// 	return new ValidationResult(
+// 	// 		// [],
+// 	// 		RequiredStringRule.Validate(RequiredString, null, customValidator.ValidateRequiredString),
+// 	// 		EmailRule.Validate(SomeEmail, null)
+// 	// 	);
+// 	// }
+//
+// 	public ValidationResult Validate(ValidationContext context)
+// 	{
+// 		var customValidator = (IFooArgsCustomValidator)this;
+//
+// 		return new ValidationResult(
+// 			// [],
+// 			FooArgsRules.RequiredStringRule.Validate(RequiredString, context, customValidator.ValidateRequiredString),
+// 			FooArgsRules.EmailRule.Validate(SomeEmail, context)
+// 		);
+// 	}
+// }
+//
 // //
 // // class Program
 // // {
