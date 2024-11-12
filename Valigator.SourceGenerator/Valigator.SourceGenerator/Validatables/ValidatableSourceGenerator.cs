@@ -25,16 +25,9 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		(ObjectProperties Object, EquatableArray<ValidatorProperties> Validators) properties
 	)
 	{
-		// bool hasContext = false;
 		bool hasCustomValidation = false;
 		bool isAsync = properties.Object.Methods.Any(m => m.IsAsync);
 		string customValidationInterfaceSourceText = string.Empty;
-		// bool isAsync =
-		// 	properties.Object.AfterValidateReturnType is AfterValidateReturnType.TaskValidationResult
-		// 	|| properties.Object.BeforeValidateReturnType
-		// 		is BeforeValidateReturnType.TaskValidationResult
-		// 			or BeforeValidateReturnType.Task
-		// 			or BeforeValidateReturnType.AsyncEnumerable;
 
 		var validatorRules = new FilePart();
 		var ruleValidateCalls = new List<string>();
@@ -139,20 +132,10 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			.AppendLine("/// <inheritdoc />")
 			.Append($"ValueTask<{Consts.ValidationResultGlobalRef}>")
 			.AppendLine($" {Consts.InternalValidationInvokerGlobalRef}.Validate(")
-			// .AppendLine("/// <summary>Validate the object.</summary>")
-			// // > public virtual async ValueTask<ValidationResult> Validate(
-			// .Append($"public {overrideVirtual} {asyncKeyword}{validateReturnType} Validate(")
 			.AppendLine($"\t{Consts.ValidationContextGlobalRef} context,")
 			.AppendLine($"\t{Consts.ServiceProviderGlobalRef}? serviceProvider")
 			.AppendLine(")")
 			.AppendLine("{");
-
-		// if (hasContext)
-		// {
-		// 	validateMethodFilePart.Append($"{Consts.ValidationContextGlobalRef} context");
-		// }
-		//
-		// validateMethodFilePart.AppendLine(")").AppendLine("{");
 
 		if (hasCustomValidation)
 		{
@@ -526,13 +509,6 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				);
 			}
 
-			// TODO: Handle context
-			// if (existingMethod is not null && existingMethod.RequiresContext)
-			// {
-			// 	hasContext = true;
-			// 	customValidationMethodsForInterface.Append("global::Valigator.ValidationContext context");
-			// }
-
 			customValidationMethodsForInterface.AppendLine(");");
 		}
 
@@ -550,16 +526,5 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		);
 
 		ruleValidateCalls.Add(validationCalls.ToString());
-		// ruleValidateCalls.Add(
-		// 	$"{rulesClassName}.{validatableProperty.PropertyName}Rule.Validate("
-		// 		+ $"{validatableProperty.PropertyName}, "
-		// 		+ $"{(thisHasContext ? "context" : "null")}"
-		// 		+ (
-		// 			thisRuleHasCustomValidation
-		// 				? $", customValidator.Validate{validatableProperty.PropertyName}"
-		// 				: string.Empty
-		// 		)
-		// 		+ ")"
-		// );
 	}
 }

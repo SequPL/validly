@@ -8,13 +8,8 @@ public class ExtendableValidationResult : ValidationResult
 	/// <summary>
 	/// Represents the result of a validation. Variant with methods for adding global messages and properties results.
 	/// </summary>
-	public ExtendableValidationResult(
-	// IEnumerable<ValidationMessage> globalMessages,
-	// params PropertyValidationResult[] propertiesResult
-	)
-		: base(
-			[] /*, propertiesResult*/
-		)
+	public ExtendableValidationResult()
+		: base([])
 	{
 		// Convert to list so we can add to it
 		PropertiesResult = PropertiesResult.ToList();

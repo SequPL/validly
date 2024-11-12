@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Valigator.SourceGenerator.Validatables.Dtos;
 
 namespace Valigator.SourceGenerator.Utils.Mapping;
 

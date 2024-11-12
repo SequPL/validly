@@ -10,11 +10,6 @@ internal record ObjectProperties
 	/// </summary>
 	public required EquatableArray<string> Usings { get; init; }
 
-	// /// <summary>
-	// /// Item per constructor. Item is parameters syntax (eg "int min, int max")
-	// /// </summary>
-	// public EquatableArray<string> Ctors { get; init; } = EquatableArray<string>.Empty;
-
 	public required string ClassOrRecordKeyword { get; init; }
 
 	/// <summary>
@@ -51,29 +46,4 @@ internal record ObjectProperties
 	/// AfterValidate() method
 	/// </summary>
 	public required MethodProperties? AfterValidateMethod { get; init; }
-
-	// /// <summary>
-	// /// Object has BeforeValidate method
-	// /// </summary>
-	// public required bool HasBeforeValidate { get; init; }
-	//
-	// /// <summary>
-	// /// Return type of BeforeValidate() method
-	// /// </summary>
-	// public required BeforeValidateReturnType BeforeValidateReturnType { get; init; }
-	//
-	// /// <summary>
-	// /// Object has AfterValidate method
-	// /// </summary>
-	// public required bool HasAfterValidate { get; init; }
-	//
-	// /// <summary>
-	// /// Return type of AfterValidate() method
-	// /// </summary>
-	// public required AfterValidateReturnType AfterValidateReturnType { get; init; }
-
-	// /// <summary>
-	// /// Inherited object requires context
-	// /// </summary>
-	// public bool InheritedValidatableObjectRequiresContext { get; init; }
 }

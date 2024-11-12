@@ -32,9 +32,4 @@ public static class Extensions
 	{
 		return symbol.ToDisplayString(QualifiedNameArityFormat);
 	}
-
-	// public static IEnumerable<TSource> WhereNotNull<TSource>(this IEnumerable<TSource?> source)
-	// {
-	// 	return source.Where(static item => item is not null)!;
-	// }
 }
