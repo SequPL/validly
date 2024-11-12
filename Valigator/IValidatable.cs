@@ -8,7 +8,7 @@ public interface IValidatable
 	/// <summary>
 	/// Validate the object
 	/// </summary>
-	/// <param name="context"></param>
+	/// <param name="serviceProvider"></param>
 	/// <returns></returns>
-	ValueTask<ValidationResult> Validate(ValidationContext context);
+	ValueTask<ValidationResult> Validate(IServiceProvider serviceProvider);
 }

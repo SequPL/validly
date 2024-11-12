@@ -1,25 +1,52 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Valigator;
 
 /// <summary>
-/// Validation context for use with <see cref="Validators.IContextValidator" />.
-/// It holds the <see cref="IServiceProvider" /> and provides a way to get services from it.
+/// Validation context with information about the object being validated.
 /// </summary>
-public class ValidationContext : IServiceProvider
+public class ValidationContext
 {
-	private readonly Lazy<IServiceScope> _serviceScope;
+	private readonly object _rootObject;
+	private object _object;
+	private string _propertyName = string.Empty;
+
+	/// <summary>
+	/// Root object that is being validated.
+	/// </summary>
+	public object RootObject => _rootObject;
+
+	/// <summary>
+	/// Current object that is being validated. Is child of the root object.
+	/// </summary>
+	public object Object => _object;
+
+	/// <summary>
+	/// Name of current property that is being validated.
+	/// </summary>
+	public string PropertyName => _propertyName;
 
 	/// <summary></summary>
-	/// <param name="serviceProvider"></param>
-	public ValidationContext(IServiceProvider serviceProvider)
+	/// <param name="rootObject">Root validated object</param>
+	public ValidationContext(object rootObject)
 	{
-		_serviceScope = new Lazy<IServiceScope>(serviceProvider.CreateScope);
+		_rootObject = rootObject;
+		_object = rootObject;
 	}
 
-	/// <inheritdoc />
-	public object? GetService(Type serviceType)
+	/// <summary>
+	/// Change the current object that is being validated.
+	/// </summary>
+	/// <param name="obj"></param>
+	public void SetObject(object obj)
 	{
-		return _serviceScope.Value.ServiceProvider.GetService(serviceType);
+		_object = obj;
+	}
+
+	/// <summary>
+	/// Change the current property that is being validated.
+	/// </summary>
+	/// <param name="propertyName"></param>
+	public void SetProperty(string propertyName)
+	{
+		_propertyName = propertyName;
 	}
 }

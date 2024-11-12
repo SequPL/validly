@@ -7,7 +7,14 @@ namespace Valigator;
 /// </summary>
 public class ValidationResult
 {
+	/// <summary>
+	/// Global validation messages; messages that are not tied to a specific property
+	/// </summary>
 	protected internal IList<ValidationMessage> GlobalMessages;
+
+	/// <summary>
+	/// Properties validation results
+	/// </summary>
 	protected internal IList<PropertyValidationResult> PropertiesResult;
 
 	private bool? _success;

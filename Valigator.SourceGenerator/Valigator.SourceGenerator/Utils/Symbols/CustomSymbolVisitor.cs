@@ -41,18 +41,15 @@ public class CustomSymbolVisitor
 		IEnumerable<INamedTypeSymbol> namespaceTypes = namespaceSymbol.GetTypeMembers();
 
 		namespaceTypes = predicate is not null
-			? namespaceTypes.Where(t => FilterNonSystemNamedTypes(t) && predicate(t))
-			: namespaceTypes.Where(FilterNonSystemNamedTypes);
+			? namespaceTypes.Where(namedTypeSymbol =>
+				namedTypeSymbol.Kind == SymbolKind.NamedType && predicate(namedTypeSymbol)
+			)
+			: namespaceTypes.Where(namedTypeSymbol => namedTypeSymbol.Kind == SymbolKind.NamedType);
 
 		return namespaceTypes
 			.Concat(
 				namespaceSymbol.GetNamespaceMembers().SelectMany(ns => GetNamedTypes(ns, cancellationToken, predicate))
 			)
 			.ToImmutableArray();
-	}
-
-	private static bool FilterNonSystemNamedTypes(INamedTypeSymbol namedTypeSymbol)
-	{
-		return namedTypeSymbol.Kind == SymbolKind.NamedType;
 	}
 }

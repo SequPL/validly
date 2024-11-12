@@ -8,13 +8,13 @@ public class ExtendableValidationResult : ValidationResult
 	/// <summary>
 	/// Represents the result of a validation. Variant with methods for adding global messages and properties results.
 	/// </summary>
-	/// <param name="globalMessages"></param>
-	/// <param name="propertiesResult"></param>
 	public ExtendableValidationResult(
-		IEnumerable<ValidationMessage> globalMessages,
-		params PropertyValidationResult[] propertiesResult
+	// IEnumerable<ValidationMessage> globalMessages,
+	// params PropertyValidationResult[] propertiesResult
 	)
-		: base(globalMessages.ToList(), propertiesResult)
+		: base(
+			[] /*, propertiesResult*/
+		)
 	{
 		// Convert to list so we can add to it
 		PropertiesResult = PropertiesResult.ToList();
@@ -28,6 +28,34 @@ public class ExtendableValidationResult : ValidationResult
 	public ExtendableValidationResult AddGlobalMessage(ValidationMessage message)
 	{
 		GlobalMessages.Add(message);
+		return this;
+	}
+
+	/// <summary>
+	/// Add a global messages to the validation result
+	/// </summary>
+	/// <param name="messages"></param>
+	/// <returns></returns>
+	public ExtendableValidationResult AddGlobalMessages(IEnumerable<ValidationMessage> messages)
+	{
+		foreach (ValidationMessage? message in messages)
+		{
+			GlobalMessages.Add(message);
+		}
+		return this;
+	}
+
+	/// <summary>
+	/// Add a global messages to the validation result
+	/// </summary>
+	/// <param name="messages"></param>
+	/// <returns></returns>
+	public async Task<ExtendableValidationResult> AddGlobalMessages(IAsyncEnumerable<ValidationMessage> messages)
+	{
+		await foreach (ValidationMessage message in messages)
+		{
+			GlobalMessages.Add(message);
+		}
 		return this;
 	}
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Immutable;
+using JetBrains.Annotations;
 
 namespace Valigator.SourceGenerator.Utils;
 
@@ -74,6 +75,7 @@ internal readonly struct EquatableArray<TItem> : IEquatable<EquatableArray<TItem
 	public TItem[]? GetArray() => _array;
 
 	/// <sinheritdoc/>
+	[MustDisposeResource]
 	IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
 	{
 		return ((IEnumerable<TItem>)(_array ?? Array.Empty<TItem>())).GetEnumerator();

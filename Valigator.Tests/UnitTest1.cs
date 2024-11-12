@@ -100,6 +100,7 @@ public partial class CreateUserRequest
 	[CustomValidation]
 	public required string Email { get; set; }
 
+	[Required]
 	[Between(18, 99)]
 	public int Age { get; set; }
 
@@ -109,13 +110,13 @@ public partial class CreateUserRequest
 	// }
 	IEnumerable<ValidationMessage> ICreateUserRequestCustomValidation.ValidateEmail()
 	{
-		if (Email.Contains("gmail"))
-			yield return new ValidationMessage("Email cannot contain 'gmail'", "");
+		// if (Email.Contains("gmail"))
+		// 	yield return new ValidationMessage("Email cannot contain 'gmail'", "");
+		return [];
 	}
 
 	private ValidationResult AfterValidate(ValidationResult result)
 	{
-		Name = Name + "neco aby to bylo delší";
 		return result;
 	}
 }
