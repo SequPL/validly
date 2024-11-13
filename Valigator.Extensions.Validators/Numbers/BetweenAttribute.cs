@@ -42,36 +42,20 @@ public class BetweenAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(object? value)
 	{
 		if (value is null)
 		{
-			yield break;
-		}
-
-		if (value is string stringValue)
-		{
-			if (stringValue.Length < _min || stringValue.Length > _max)
-			{
-				yield return new ValidationMessage(
-					"Value must be between {0} and {1}.",
-					"Valigator.Validations.Between",
-					_min,
-					_max
-				);
-			}
+			return null;
 		}
 
 		decimal decimalValue = Convert.ToDecimal(value);
 
 		if (decimalValue < _min || decimalValue > _max)
 		{
-			yield return new ValidationMessage(
-				"Must be between {0} and {1}.",
-				"Valigator.Validations.Between",
-				_min,
-				_max
-			);
+			return new ValidationMessage("Must be between {0} and {1}.", "Valigator.Validations.Between", _min, _max);
 		}
+
+		return null;
 	}
 }

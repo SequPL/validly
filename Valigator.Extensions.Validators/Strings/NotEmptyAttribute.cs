@@ -18,11 +18,13 @@ public class NotEmptyAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(string? value)
 	{
-		if (value is string strValue && string.IsNullOrWhiteSpace(strValue))
+		if (string.IsNullOrWhiteSpace(value))
 		{
-			yield return NotEmptyMessage;
+			return NotEmptyMessage;
 		}
+
+		return null;
 	}
 }

@@ -41,18 +41,20 @@ public class GreaterThanAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(object? value)
 	{
 		if (value is null)
 		{
-			yield break;
+			return null;
 		}
 
 		decimal decimalValue = Convert.ToDecimal(value);
 
 		if (decimalValue <= _min)
 		{
-			yield return new ValidationMessage("Must be greater than {0}.", "Valigator.Validations.GreaterThan", value);
+			return new ValidationMessage("Must be greater than {0}.", "Valigator.Validations.GreaterThan", value);
 		}
+
+		return null;
 	}
 }

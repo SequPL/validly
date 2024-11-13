@@ -35,18 +35,20 @@ public class LessThanAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(object? value)
 	{
 		if (value is null)
 		{
-			yield break;
+			return null;
 		}
 
 		decimal decimalValue = Convert.ToDecimal(value);
 
 		if (decimalValue >= _max)
 		{
-			yield return new ValidationMessage("Must be less than {0}.", "Valigator.Validations.LessThan", value);
+			return new ValidationMessage("Must be less than {0}.", "Valigator.Validations.LessThan", value);
 		}
+
+		return null;
 	}
 }

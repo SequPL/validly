@@ -23,15 +23,17 @@ public class MinLengthAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(string? value)
 	{
-		if (value is string strValue && strValue.Length < _minLength)
+		if (value is not null && value.Length < _minLength)
 		{
-			yield return new ValidationMessage(
+			return new ValidationMessage(
 				"Must be at least {0} characters long.",
 				"Valigator.Validations.MinLength",
 				value
 			);
 		}
+
+		return null;
 	}
 }

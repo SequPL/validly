@@ -61,18 +61,18 @@ public static class ValidationResultHelper
 		return new ValidationResult(errorList);
 	}
 
-	/// <summary>
-	/// Combine multiple results into a single result
-	/// </summary>
-	/// <param name="results"></param>
-	/// <returns></returns>
-	public static ValidationResult Combine(params ValidationResult[] results)
-	{
-		return new ValidationResult(
-			results.SelectMany(r => r.Global).ToImmutableArray(),
-			results.SelectMany(r => r.Properties).ToArray()
-		);
-	}
+	// /// <summary>
+	// /// Combine multiple results into a single result
+	// /// </summary>
+	// /// <param name="results"></param>
+	// /// <returns></returns>
+	// public static ValidationResult Combine(params ValidationResult[] results)
+	// {
+	// 	return new ValidationResult(
+	// 		results.SelectMany(r => r.Global).ToImmutableArray(),
+	// 		results.SelectMany(r => r.Properties).ToArray()
+	// 	);
+	// }
 
 	/// <summary>
 	/// Replace result by another result or add messages to existing result

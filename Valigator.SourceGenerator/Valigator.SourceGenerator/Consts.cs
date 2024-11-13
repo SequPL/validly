@@ -22,6 +22,7 @@ internal static class Consts
 	public const string ValidationResultName = "ValidationResult";
 	public const string CustomValidationMethodPrefix = "Validate";
 	public const string ValidationContextName = "ValidationContext";
+	public const string ValidationMessageName = "ValidationMessage";
 	public const string IsValidMethodName = "IsValid";
 	public const string BeforeValidateMethodName = "BeforeValidate";
 	public const string AfterValidateMethodName = "AfterValidate";

@@ -21,11 +21,28 @@ public class RequiredAttribute(bool allowEmptyStrings = false) : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(string? value)
 	{
-		if (value is null || (value is string stringValue && string.IsNullOrEmpty(stringValue) && !allowEmptyStrings))
+		if (value is null || (string.IsNullOrEmpty(value) && !allowEmptyStrings))
 		{
-			yield return RequiredMessage;
+			return RequiredMessage;
 		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	public ValidationMessage? IsValid<T>(T? value)
+	{
+		if (value is null)
+		{
+			return RequiredMessage;
+		}
+
+		return null;
 	}
 }

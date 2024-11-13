@@ -1,12 +1,16 @@
+using Microsoft.Extensions.ObjectPool;
+
 namespace Valigator;
 
 /// <summary>
 /// Validation context with information about the object being validated.
 /// </summary>
-public class ValidationContext
+public record ValidationContext : IDisposable
 {
-	private readonly object _rootObject;
-	private object _object;
+	private static readonly ObjectPool<ValidationContext> Pool = ObjectPool.Create<ValidationContext>();
+
+	private object _rootObject = null!;
+	private object _object = null!;
 	private string _propertyName = string.Empty;
 
 	/// <summary>
@@ -24,12 +28,17 @@ public class ValidationContext
 	/// </summary>
 	public string PropertyName => _propertyName;
 
-	/// <summary></summary>
-	/// <param name="rootObject">Root validated object</param>
-	public ValidationContext(object rootObject)
+	/// <summary>
+	/// Create new validation context
+	/// </summary>
+	/// <param name="rootObject"></param>
+	/// <returns></returns>
+	public static ValidationContext Create(object rootObject)
 	{
-		_rootObject = rootObject;
-		_object = rootObject;
+		var c = Pool.Get();
+		c._rootObject = rootObject;
+		c._object = rootObject;
+		return c;
 	}
 
 	/// <summary>
@@ -48,5 +57,11 @@ public class ValidationContext
 	public void SetProperty(string propertyName)
 	{
 		_propertyName = propertyName;
+	}
+
+	/// <inheritdoc />
+	public void Dispose()
+	{
+		Pool.Return(this);
 	}
 }

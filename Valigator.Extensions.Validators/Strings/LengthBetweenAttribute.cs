@@ -26,21 +26,18 @@ public class LengthBetweenAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(string? value)
 	{
-		if (value is not string stringValue)
+		if (value is not null && (value.Length < _min || value.Length > _max))
 		{
-			yield break;
-		}
-
-		if (stringValue.Length < _min || stringValue.Length > _max)
-		{
-			yield return new ValidationMessage(
+			return new ValidationMessage(
 				"Length must be between {0} and {1}.",
 				"Valigator.Validations.LengthBetween",
 				_min,
 				_max
 			);
 		}
+
+		return null;
 	}
 }

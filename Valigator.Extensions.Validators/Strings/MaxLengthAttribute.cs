@@ -24,15 +24,17 @@ public class MaxLengthAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(string? value)
 	{
-		if (value is string strValue && strValue.Length > _maxLength)
+		if (value is not null && value.Length > _maxLength)
 		{
-			yield return new ValidationMessage(
+			return new ValidationMessage(
 				"Must be no more than {0} characters long.",
 				"Valigator.Validations.MaxLength",
 				value
 			);
 		}
+
+		return null;
 	}
 }

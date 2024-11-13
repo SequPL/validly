@@ -13,6 +13,8 @@ namespace Valigator.Extensions.Validators.Strings;
 public class MatchAttribute : Attribute
 {
 	private readonly Regex _regex;
+	private static readonly ValidationMessage ValidationMessage =
+		new("Must match the required format.", "Valigator.Validations.Match");
 
 	/// <param name="pattern">The regular expression pattern to match.</param>
 	public MatchAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string pattern)
@@ -25,11 +27,13 @@ public class MatchAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(string? value)
 	{
-		if (value is string strValue && !_regex.IsMatch(strValue))
+		if (value is not null && !_regex.IsMatch(value))
 		{
-			yield return new ValidationMessage("Must match the required format.", "Valigator.Validations.Match");
+			return ValidationMessage;
 		}
+
+		return null;
 	}
 }

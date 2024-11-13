@@ -20,30 +20,27 @@ public class EmailAddressAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid(string? value)
 	{
 		if (!Valid(value))
 		{
-			yield return ValidationMessage;
+			return ValidationMessage;
 		}
+
+		return null;
 	}
 
-	private static bool Valid(object? value)
+	private static bool Valid(string? value)
 	{
 		if (value == null)
 		{
 			return true;
 		}
 
-		if (!(value is string valueAsString))
-		{
-			return false;
-		}
-
 		// only return true if there is only 1 '@' character
 		// and it is neither the first nor the last character
-		int index = valueAsString.IndexOf('@');
+		int index = value.IndexOf('@');
 
-		return index > 0 && index != valueAsString.Length - 1 && index == valueAsString.LastIndexOf('@');
+		return index > 0 && index != value.Length - 1 && index == value.LastIndexOf('@');
 	}
 }

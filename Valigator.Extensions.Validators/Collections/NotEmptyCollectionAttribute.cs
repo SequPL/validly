@@ -19,11 +19,13 @@ public class NotEmptyCollectionAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
 	{
 		if (value is ICollection { Count: 0 } || (value is IEnumerable enumerable && !enumerable.Cast<object>().Any()))
 		{
-			yield return NotEmptyMessage;
+			return NotEmptyMessage;
 		}
+
+		return null;
 	}
 }

@@ -145,7 +145,9 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		}
 
 		// string globalMessages = "[]";
-		validateMethodFilePart.AppendLine($"\tvar result = new {Consts.ExtendableValidationResultGlobalRef}();");
+		validateMethodFilePart.AppendLine(
+			$"\tvar result = new {Consts.ExtendableValidationResultGlobalRef}({properties.Object.Properties.Count});"
+		);
 
 		if (properties.Object.InheritsValidatableObject)
 		{
@@ -216,7 +218,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			.Append($"ValueTask<{Consts.ValidationResultGlobalRef}>")
 			.Append($" {Consts.IValidatableGlobalRef}.Validate(IServiceProvider serviceProvider)")
 			.AppendLine("{")
-			.AppendLine($"\tvar validationContext = new {Consts.ValidationContextGlobalRef}(this);")
+			.AppendLine($"\tusing var validationContext = {Consts.ValidationContextGlobalRef}.Create(this);")
 			.AppendLine(
 				$"\treturn (({Consts.InternalValidationInvokerGlobalRef})this).Validate(validationContext, serviceProvider);"
 			)
@@ -233,7 +235,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			.AppendIf($"{Consts.ServiceProviderGlobalRef} serviceProvider", dependencies.Count > 0)
 			.AppendLine(")")
 			.AppendLine("{")
-			.AppendLine($"\tvar validationContext = new {Consts.ValidationContextGlobalRef}(this);")
+			.AppendLine($"\tusing var validationContext = {Consts.ValidationContextGlobalRef}.Create(this);")
 			.AppendLineIf(
 				$"\treturn await (({Consts.InternalValidationInvokerGlobalRef})this).Validate(validationContext, {serviceProviderDep});",
 				isAsync
@@ -382,7 +384,8 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 		var tupleTypeArguments = new List<string>();
 		var validatorRuleValidatorsLines = new List<string>();
-		var validatorInvocationValidatorsLines = new List<string>();
+		var enumerableValidatorInvocationValidatorsLines = new List<string>();
+		var singleMessageValidatorInvocationValidatorsLines = new List<string>();
 		int itemNumber = 1;
 
 		foreach (var validationAttribute in validatableProperty.ValidationAttributes)
@@ -433,9 +436,17 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 					validator.IsValidMethod.Dependencies.Select(service => $"service{service}")
 				)
 			);
-			validatorInvocationValidatorsLines.Add(
-				$"\t\t\t\t\t{rulesClassName}.{ruleName}.Item{itemNumber}.IsValid({args})"
-			);
+
+			var validatorInvocation = $"{rulesClassName}.{ruleName}.Item{itemNumber}.IsValid({args})";
+
+			if (validator.IsValidMethod.ReturnType == Consts.ValidationMessageName)
+			{
+				singleMessageValidatorInvocationValidatorsLines.Add(validatorInvocation);
+			}
+			else
+			{
+				enumerableValidatorInvocationValidatorsLines.Add(validatorInvocation);
+			}
 
 			itemNumber++;
 		}
@@ -490,10 +501,18 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				customValidationMethodsForInterface.Append(string.Join(", ", customValidationDependencies));
 
 				// Add INVOCATION
-				validatorInvocationValidatorsLines.Add(
-					$"\t\t\t\t\tcustomValidator.Validate{validatableProperty.PropertyName}"
-						+ $"({string.Join(", ", existingMethod.Dependencies.Select(service => $"service{service}"))})"
-				);
+				var customValidatorInvocation =
+					$"customValidator.Validate{validatableProperty.PropertyName}"
+					+ $"({string.Join(", ", existingMethod.Dependencies.Select(service => $"service{service}"))})";
+
+				if (existingMethod.ReturnType == Consts.ValidationMessageName)
+				{
+					singleMessageValidatorInvocationValidatorsLines.Add(customValidatorInvocation);
+				}
+				else
+				{
+					enumerableValidatorInvocationValidatorsLines.Add(customValidatorInvocation);
+				}
 			}
 			else
 			{
@@ -504,8 +523,8 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 					.Append($"IEnumerable<ValidationMessage> Validate{validatableProperty.PropertyName}(");
 
 				// Add INVOCATION
-				validatorInvocationValidatorsLines.Add(
-					$"\t\t\t\t\tcustomValidator.Validate{validatableProperty.PropertyName}()"
+				enumerableValidatorInvocationValidatorsLines.Add(
+					$"customValidator.Validate{validatableProperty.PropertyName}()"
 				);
 			}
 
@@ -514,17 +533,60 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 		// Generate INVOCATION `xxRule.IsValid()`
 		var validationCalls = new StringBuilder();
-		validationCalls.AppendLine(
+		validationCalls.Append(
 			@$"	// Validate {validatableProperty.PropertyName}
 			context.SetProperty(""{validatableProperty.PropertyName}"");
 			result.AddPropertyResult(
-				new {Consts.PropertyValidationResultGlobalRef}(
-					""{validatableProperty.PropertyName}"",
-{string.Join($", {Environment.NewLine}", validatorInvocationValidatorsLines)}
+				{Consts.PropertyValidationResultGlobalRef}.Create(
+					""{validatableProperty.PropertyName}"""
+		);
+
+		if (enumerableValidatorInvocationValidatorsLines.Count != 0)
+		{
+			validationCalls.Append(
+				@$",
+					{CreateConcatenation(enumerableValidatorInvocationValidatorsLines)}"
+			);
+		}
+
+		validationCalls.AppendLine(
+			@$"
 				)
+				{CreateAddChain(singleMessageValidatorInvocationValidatorsLines)}
 			);"
 		);
 
 		ruleValidateCalls.Add(validationCalls.ToString());
+	}
+
+	private static string CreateAddChain(List<string> invocations)
+	{
+		return string.Join(
+			Environment.NewLine + "\t\t\t\t",
+			invocations.Select(invocation => $".AddValidationMessage({invocation})")
+		);
+	}
+
+	private static string CreateConcatenation(List<string> enumerators)
+	{
+		if (enumerators.Count == 0)
+		{
+			return string.Empty;
+		}
+
+		if (enumerators.Count == 1)
+		{
+			return enumerators[0];
+		}
+
+		var builder = new StringBuilder();
+		builder.AppendLine(enumerators[0]);
+
+		for (int i = 1; i < enumerators.Count; i++)
+		{
+			builder.AppendLine($"\t\t\t\t\t\t.Concat({enumerators[i].TrimStart()})");
+		}
+
+		return builder.ToString();
 	}
 }

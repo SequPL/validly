@@ -27,11 +27,11 @@ public class CollectionSizeBetweenAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
 	{
 		if (value is ICollection collection && (collection.Count < _minSize || collection.Count > _maxSize))
 		{
-			yield return CreateErrorValidationMessage();
+			return CreateErrorValidationMessage();
 		}
 
 		if (value is IEnumerable enumerable)
@@ -40,9 +40,11 @@ public class CollectionSizeBetweenAttribute : Attribute
 
 			if (count < _minSize || count > _maxSize)
 			{
-				yield return CreateErrorValidationMessage();
+				return CreateErrorValidationMessage();
 			}
 		}
+
+		return null;
 	}
 
 	private ValidationMessage CreateErrorValidationMessage()

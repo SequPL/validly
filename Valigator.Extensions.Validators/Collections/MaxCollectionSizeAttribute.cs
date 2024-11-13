@@ -24,19 +24,21 @@ public class MaxCollectionSizeAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
 	{
 		if (
 			(value is ICollection collection && collection.Count > _maxSize)
 			|| (value is IEnumerable enumerable && enumerable.Cast<object>().Count() > _maxSize)
 		)
 		{
-			yield return new ValidationMessage(
+			return new ValidationMessage(
 				"Must contain no more than {0} items.",
 				"Valigator.Validations.MaxCollectionSize",
 				_maxSize
 			);
 		}
+
+		return null;
 	}
 }
 

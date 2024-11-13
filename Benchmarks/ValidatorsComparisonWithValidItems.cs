@@ -7,13 +7,14 @@ namespace Benchmarks;
 
 // [SimpleJob(RuntimeMoniker.Net472, baseline: true)]
 // [SimpleJob(RuntimeMoniker.NetCoreApp31)]
-[SimpleJob(RuntimeMoniker.Net80, baseline: true)]
-[SimpleJob(RuntimeMoniker.NativeAot80)]
-[RPlotExporter]
+// [SimpleJob(RuntimeMoniker.Net70, baseline: true)]
+// [SimpleJob(RuntimeMoniker.Net80)]
+// [SimpleJob(RuntimeMoniker.NativeAot80)]
+// [RPlotExporter]
 [MemoryDiagnoser]
 public class ValidatorsComparisonWithValidItems
 {
-	private static readonly ValigatorCreateUserRequest valigatorCreateUserRequest =
+	private static readonly ValigatorCreateUserRequest ValigatorCreateUserRequest =
 		new()
 		{
 			Username = "username",
@@ -24,7 +25,7 @@ public class ValidatorsComparisonWithValidItems
 			LastName = "Stark",
 		};
 
-	private static readonly DataAnnotationValigatorCreateUserRequest dataAnnotationCreateUserRequest =
+	private static readonly DataAnnotationValigatorCreateUserRequest DataAnnotationCreateUserRequest =
 		new()
 		{
 			Username = "username",
@@ -39,13 +40,17 @@ public class ValidatorsComparisonWithValidItems
 	public void Setup() { }
 
 	[Benchmark]
-	public bool Valigator() => valigatorCreateUserRequest.Validate().Success;
+	public bool Valigator()
+	{
+		using var result = ValigatorCreateUserRequest.Validate();
+		return result.Success;
+	}
 
 	[Benchmark]
 	public bool DataAnnotation() =>
 		Validator.TryValidateObject(
-			dataAnnotationCreateUserRequest,
-			new ValidationContext(dataAnnotationCreateUserRequest),
+			DataAnnotationCreateUserRequest,
+			new ValidationContext(DataAnnotationCreateUserRequest),
 			null
 		);
 

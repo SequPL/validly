@@ -24,18 +24,20 @@ public class MinCollectionSizeAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public IEnumerable<ValidationMessage> IsValid(object? value)
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
 	{
 		if (
 			(value is ICollection collection && collection.Count < _minSize)
 			|| (value is IEnumerable enumerable && enumerable.Cast<object>().Count() < _minSize)
 		)
 		{
-			yield return new ValidationMessage(
+			return new ValidationMessage(
 				"Must contain at least {0} items.",
 				"Valigator.Validations.MinCollectionSize",
 				_minSize
 			);
 		}
+
+		return null;
 	}
 }
