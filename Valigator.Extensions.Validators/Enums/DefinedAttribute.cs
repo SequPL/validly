@@ -16,9 +16,9 @@ public class DefinedAttribute : Attribute
   /// </summary>
   /// <param name="value"></param>
   /// <returns></returns>
-  public ValidationMessage? IsValid<T>(T value)
+  public ValidationMessage? IsValid<T>(T value) where T : struct
   {
-    if (value is IEnumerable<T> enumerable && !Enum.IsDefined(typeof(T), value))
+    if (!Enum.IsDefined(typeof(T), value))
     {
       return new ValidationMessage(
         "Value must be within enum defined values.",
