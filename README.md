@@ -27,7 +27,7 @@ public partial class CreateUserRequest
 
     [Required]
     [EmailAddress]
-    public int Email { get; set; }
+    public string Email { get; set; }
 
     [Range(18, 99)]
     public int Age { get; set; }
