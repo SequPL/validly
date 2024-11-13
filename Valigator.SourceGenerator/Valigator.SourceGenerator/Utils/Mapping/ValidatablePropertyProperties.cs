@@ -6,6 +6,8 @@ internal record ValidatablePropertyProperties
 
 	public required string PropertyType { get; init; }
 
+	public required bool Nullable { get; init; }
+
 	public required bool PropertyIsOfValidatableType { get; init; }
 
 	public required EquatableArray<AttributeProperties> ValidationAttributes { get; init; }

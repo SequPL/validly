@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
-using Benchmarks.Dtos;
 
 namespace Benchmarks;
 
@@ -14,7 +12,7 @@ namespace Benchmarks;
 [MemoryDiagnoser]
 public class ValidatorsComparisonWithValidItems
 {
-	private static readonly ValigatorCreateUserRequest ValigatorCreateUserRequest =
+	private static readonly CreateUserRequest CreateUserRequestValid =
 		new()
 		{
 			Username = "username",
@@ -25,15 +23,26 @@ public class ValidatorsComparisonWithValidItems
 			LastName = "Stark",
 		};
 
-	private static readonly DataAnnotationValigatorCreateUserRequest DataAnnotationCreateUserRequest =
+	private static readonly CreateUserRequest CreateUserRequestOneInvalid =
 		new()
 		{
-			Username = "username",
+			Username = "",
 			Password = "S0m3_pa55w0rd#",
 			Email = "email@gmail.com",
 			Age = 25,
 			FirstName = "Tony",
 			LastName = "Stark",
+		};
+
+	private static readonly CreateUserRequest CreateUserRequestAllInvalid =
+		new()
+		{
+			Username = "Tom",
+			Password = "pass",
+			Email = "email[at]gmail.com",
+			Age = 16,
+			FirstName = "",
+			LastName = "",
 		};
 
 	[GlobalSetup]
@@ -42,15 +51,41 @@ public class ValidatorsComparisonWithValidItems
 	[Benchmark]
 	public bool Valigator()
 	{
-		using var result = ValigatorCreateUserRequest.Validate();
+		using var result = CreateUserRequestValid.Validate();
+		return result.Success;
+	}
+
+	[Benchmark]
+	public bool ValigatorOneInvalid()
+	{
+		using var result = CreateUserRequestOneInvalid.Validate();
+		return result.Success;
+	}
+
+	[Benchmark]
+	public bool ValigatorAllInvalid()
+	{
+		using var result = CreateUserRequestAllInvalid.Validate();
 		return result.Success;
 	}
 
 	[Benchmark]
 	public bool DataAnnotation() =>
+		Validator.TryValidateObject(CreateUserRequestValid, new ValidationContext(CreateUserRequestValid), null);
+
+	[Benchmark]
+	public bool DataAnnotationOneInvalid() =>
 		Validator.TryValidateObject(
-			DataAnnotationCreateUserRequest,
-			new ValidationContext(DataAnnotationCreateUserRequest),
+			CreateUserRequestOneInvalid,
+			new ValidationContext(CreateUserRequestOneInvalid),
+			null
+		);
+
+	[Benchmark]
+	public bool DataAnnotationAllInvalid() =>
+		Validator.TryValidateObject(
+			CreateUserRequestAllInvalid,
+			new ValidationContext(CreateUserRequestAllInvalid),
 			null
 		);
 

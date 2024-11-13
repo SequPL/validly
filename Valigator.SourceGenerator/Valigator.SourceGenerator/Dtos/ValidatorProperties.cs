@@ -1,6 +1,6 @@
 using Valigator.SourceGenerator.Utils.Mapping;
 
-namespace Valigator.SourceGenerator.Validatables.Dtos;
+namespace Valigator.SourceGenerator.Dtos;
 
 internal record ValidatorProperties
 {

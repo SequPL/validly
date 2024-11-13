@@ -1,10 +1,10 @@
 using Microsoft.CodeAnalysis;
+using Valigator.SourceGenerator.Dtos;
 using Valigator.SourceGenerator.Utils;
 using Valigator.SourceGenerator.Utils.Mapping;
 using Valigator.SourceGenerator.Utils.Symbols;
-using Valigator.SourceGenerator.Validatables.Dtos;
 
-namespace Valigator.SourceGenerator.Validatables.ValueProviders;
+namespace Valigator.SourceGenerator.ValueProviders;
 
 internal static class ValidatorsIncrementalValueProvider
 {

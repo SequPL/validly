@@ -1,13 +1,13 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Valigator.SourceGenerator.Dtos;
 using Valigator.SourceGenerator.Utils;
 using Valigator.SourceGenerator.Utils.FileBuilders;
 using Valigator.SourceGenerator.Utils.Mapping;
-using Valigator.SourceGenerator.Validatables.Dtos;
-using Valigator.SourceGenerator.Validatables.ValueProviders;
+using Valigator.SourceGenerator.ValueProviders;
 
-namespace Valigator.SourceGenerator.Validatables;
+namespace Valigator.SourceGenerator;
 
 [Generator]
 public class ValidatableSourceGenerator : IIncrementalGenerator
@@ -16,13 +16,24 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 	{
 		var allValidators = ValidatorsIncrementalValueProvider.Get(initContext);
 		var validatableObjects = ValidatableObjectIncrementalValueProvider.Get(initContext);
+		var config = ConfigOptionsProvider.Get(initContext);
 
-		initContext.RegisterSourceOutput(validatableObjects.Combine(allValidators), ExecuteValidatorGeneration);
+		initContext.RegisterSourceOutput(
+			validatableObjects
+				.Combine(config)
+				.Combine(allValidators)
+				.Select((tuple, _) => (tuple.Left.Left, tuple.Left.Right, tuple.Right)),
+			ExecuteValidatorGeneration
+		);
 	}
 
 	private static void ExecuteValidatorGeneration(
 		SourceProductionContext context,
-		(ObjectProperties Object, EquatableArray<ValidatorProperties> Validators) properties
+		(
+			ObjectProperties Object,
+			ValigatorConfiguration Config,
+			EquatableArray<ValidatorProperties> Validators
+		) properties
 	)
 	{
 		bool hasCustomValidation = false;
@@ -44,6 +55,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		{
 			ProcessValidatableProperty(
 				property,
+				properties.Config,
 				properties.Validators,
 				methods,
 				dependencies,
@@ -114,7 +126,11 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 	}
 
 	private static FilePart CreateValidateMethod(
-		(ObjectProperties Object, EquatableArray<ValidatorProperties> Validators) properties,
+		(
+			ObjectProperties Object,
+			ValigatorConfiguration Config,
+			EquatableArray<ValidatorProperties> Validators
+		) properties,
 		HashSet<string> dependencies,
 		bool hasCustomValidation,
 		string customValidatorInterfaceName,
@@ -361,6 +377,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 	private static void ProcessValidatableProperty(
 		ValidatablePropertyProperties validatableProperty,
+		ValigatorConfiguration config,
 		EquatableArray<ValidatorProperties> validators,
 		Dictionary<string, MethodProperties> methods,
 		HashSet<string> dependencies,
@@ -372,6 +389,18 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		ref bool isAsync
 	)
 	{
+		var attributes = validatableProperty.ValidationAttributes.GetArray()?.ToList() ?? [];
+
+		// AUTO REQUIRED - Add Required validator if the property is not nullable
+		if (
+			config.AutoRequired
+			&& !validatableProperty.Nullable
+			&& attributes.All(x => x.QualifiedName != Consts.RequiredAttributeQualifiedName)
+		)
+		{
+			attributes.Add(AttributeProperties.Required);
+		}
+
 		// Skip properties without validators
 		if (validatableProperty.ValidationAttributes.Count == 0)
 		{
@@ -379,7 +408,6 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		}
 
 		bool thisRuleHasCustomValidation = false;
-		// bool thisHasContext = false;
 		string ruleName = $"{validatableProperty.PropertyName}Rule";
 
 		var tupleTypeArguments = new List<string>();
@@ -388,7 +416,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		var singleMessageValidatorInvocationValidatorsLines = new List<string>();
 		int itemNumber = 1;
 
-		foreach (var validationAttribute in validatableProperty.ValidationAttributes)
+		foreach (var validationAttribute in attributes)
 		{
 			// CUSTOM validation
 			if (validationAttribute.QualifiedName == Consts.CustomValidationAttribute)

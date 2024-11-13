@@ -1,6 +1,7 @@
+using System.Collections;
 using Valigator.Validators;
 
-namespace Valigator.Extensions.Validators.Strings;
+namespace Valigator.Extensions.Validators.Common;
 
 /// <summary>
 /// Validator that ensures a value is a non-empty string
@@ -21,6 +22,21 @@ public class NotEmptyAttribute : Attribute
 	public ValidationMessage? IsValid(string? value)
 	{
 		if (string.IsNullOrWhiteSpace(value))
+		{
+			return NotEmptyMessage;
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
+	{
+		if (value is ICollection { Count: 0 } || (value is IEnumerable enumerable && !enumerable.Cast<object>().Any()))
 		{
 			return NotEmptyMessage;
 		}

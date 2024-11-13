@@ -16,6 +16,11 @@
 		<Description>Source Generator for Valigator validation library</Description>
     </PropertyGroup>
 
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Update=".\Properties\Valigator.SourceGenerator.props" Pack="true" PackagePath="build" />
+	</ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
         <PackageReference Include="Microsoft.CodeAnalysis" Version="4.3.1" />
@@ -30,14 +35,9 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
     </ItemGroup>
-	
-	<ItemGroup>
-		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-	</ItemGroup>
-	
-	<ItemGroup>
-	  <ProjectReference Include="..\..\Valigator\Valigator.csproj" />
-	</ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\..\Valigator\Valigator.csproj" />
+	</ItemGroup>
 
 </Project>

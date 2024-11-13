@@ -36,12 +36,21 @@ internal static class SymbolMapper
 		};
 	}
 
-	public static ValidatablePropertyProperties MapValidatableProperty(IPropertySymbol propertySymbol)
+	public static ValidatablePropertyProperties MapValidatableProperty(
+		IPropertySymbol propertySymbol,
+		SemanticModel semanticModel
+	)
 	{
 		return new ValidatablePropertyProperties
 		{
 			PropertyName = propertySymbol.Name,
 			PropertyType = propertySymbol.Type.Name,
+			Nullable =
+				propertySymbol.NullableAnnotation == NullableAnnotation.Annotated
+				|| (
+					semanticModel.GetNullableContext(propertySymbol.Locations[0].SourceSpan.Start)
+					& NullableContext.Enabled
+				) != NullableContext.Enabled,
 			PropertyIsOfValidatableType = propertySymbol
 				.Type.GetAttributes()
 				.Any(attr => attr.AttributeClass?.GetQualifiedName() == Consts.ValidatableAttributeQualifiedName),

@@ -8,6 +8,13 @@ namespace Valigator.SourceGenerator.Utils.Mapping;
 /// </remarks>
 internal record AttributeProperties
 {
+	public static readonly AttributeProperties Required =
+		new()
+		{
+			QualifiedName = "Valigator.Extensions.Validators.Common.RequiredAttribute",
+			Arguments = EquatableArray<string>.Empty,
+		};
+
 	/// <summary></summary>
 	public required string QualifiedName { get; init; }
 

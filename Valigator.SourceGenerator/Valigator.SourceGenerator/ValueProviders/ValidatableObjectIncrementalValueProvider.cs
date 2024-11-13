@@ -1,11 +1,10 @@
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Valigator.SourceGenerator.Dtos;
 using Valigator.SourceGenerator.Utils;
 using Valigator.SourceGenerator.Utils.Mapping;
-using Valigator.SourceGenerator.Validatables.Dtos;
 
-namespace Valigator.SourceGenerator.Validatables.ValueProviders;
+namespace Valigator.SourceGenerator.ValueProviders;
 
 internal static class ValidatableObjectIncrementalValueProvider
 {
@@ -26,6 +25,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 	)
 	{
 		var symbol = context.TargetSymbol;
+		var semanticModel = context.SemanticModel;
 
 		if (symbol is not INamedTypeSymbol typeSymbol || context.TargetNode is not TypeDeclarationSyntax targetNode)
 		{
@@ -35,7 +35,10 @@ internal static class ValidatableObjectIncrementalValueProvider
 		var usings = GetUsings(targetNode);
 		var membersSymbols = typeSymbol.GetMembers();
 		var methods = membersSymbols.OfType<IMethodSymbol>().Select(s => SymbolMapper.MapMethod(s)).ToArray();
-		var properties = membersSymbols.OfType<IPropertySymbol>().Select(SymbolMapper.MapValidatableProperty).ToArray();
+		var properties = membersSymbols
+			.OfType<IPropertySymbol>()
+			.Select(propertySymbol => SymbolMapper.MapValidatableProperty(propertySymbol, semanticModel))
+			.ToArray();
 
 		bool inheritsValidatableObject =
 			typeSymbol
