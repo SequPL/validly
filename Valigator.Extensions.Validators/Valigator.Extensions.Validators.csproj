@@ -12,18 +12,18 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.8.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Valigator\Valigator.csproj"/>
-<!--		<ProjectReference Include="..\Valigator.SourceGenerator\Valigator.SourceGenerator\Valigator.SourceGenerator.csproj"-->
-<!--						  OutputItemType="Analyzer"-->
-<!--						  ReferenceOutputAssembly="false" />-->
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Comparables\" />
-	  <Folder Include="Enums\" />
+		<Folder Include="Comparables\"/>
 	</ItemGroup>
 
 </Project>

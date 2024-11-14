@@ -4,7 +4,7 @@ namespace Valigator.SourceGenerator.Utils.FileBuilders;
 
 public class FilePart
 {
-	private readonly List<StringBuilder> _lines = [new StringBuilder()];
+	private readonly List<StringBuilder> _lines = new() { new StringBuilder() };
 
 	private StringBuilder CurrentLine => _lines[_lines.Count - 1];
 

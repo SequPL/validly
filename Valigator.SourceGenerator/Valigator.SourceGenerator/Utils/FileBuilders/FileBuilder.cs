@@ -4,7 +4,7 @@ namespace Valigator.SourceGenerator.Utils.FileBuilders;
 
 public class FileBuilder
 {
-	private readonly List<FilePart> _parts = [new FilePart()];
+	private readonly List<FilePart> _parts = new() { new FilePart() };
 
 	private FilePart CurrentPart => _parts[_parts.Count - 1];
 

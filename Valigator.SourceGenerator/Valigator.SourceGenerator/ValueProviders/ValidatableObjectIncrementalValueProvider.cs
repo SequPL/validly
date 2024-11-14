@@ -63,7 +63,9 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 	private static UsingDirectiveSyntax[] GetUsings(TypeDeclarationSyntax targetNode)
 	{
-		var usings = targetNode.Parent?.Parent is CompilationUnitSyntax cus ? cus.Usings.ToArray() : [];
+		var usings = targetNode.Parent?.Parent is CompilationUnitSyntax cus
+			? cus.Usings.ToArray()
+			: Array.Empty<UsingDirectiveSyntax>();
 		return usings;
 	}
 }

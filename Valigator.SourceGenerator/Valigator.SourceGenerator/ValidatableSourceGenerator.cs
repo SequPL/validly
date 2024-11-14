@@ -73,7 +73,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		var validatorClassBuilder = SourceTextBuilder
 			.CreateClassOrRecord(properties.Object.ClassOrRecordKeyword, properties.Object.Name)
 			.SetAccessModifier(properties.Object.Accessibility)
-			.AddUsings(properties.Object.Usings.GetArray() ?? [])
+			.AddUsings(properties.Object.Usings.GetArray() ?? Array.Empty<string>())
 			.SetNamespace(properties.Object.Namespace)
 			.Partial()
 			.AddInterfaces(Consts.IValidatableGlobalRef)
@@ -390,7 +390,8 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		ref bool isAsync
 	)
 	{
-		var attributes = validatableProperty.ValidationAttributes.GetArray()?.ToList() ?? [];
+		var attributes =
+			validatableProperty.ValidationAttributes.GetArray()?.ToList() ?? new List<AttributeProperties>();
 
 		// Add automatic validators
 		AddAutoValidators(attributes, validatableProperty, config);
