@@ -10,7 +10,7 @@ namespace Benchmarks;
 // [SimpleJob(RuntimeMoniker.NativeAot80)]
 // [RPlotExporter]
 [MemoryDiagnoser]
-public class ValidatorsComparisonWithValidItems
+public class SimpleValidationLibrariesComparisonBenchmark
 {
 	private static readonly CreateUserRequest CreateUserRequestValid =
 		new()

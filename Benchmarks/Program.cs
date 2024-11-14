@@ -11,4 +11,12 @@ IConfig config = DefaultConfig
 	.WithOptions(ConfigOptions.DisableOptimizationsValidator)
 	.AddJob(job);
 
-BenchmarkRunner.Run<ValidatorsComparisonWithValidItems>(config);
+if (args.Any(arg => arg == "valigator-only"))
+{
+	job.WithIterationCount(10);
+	BenchmarkRunner.Run<DevValigatorBenchmark>(config);
+}
+else
+{
+	BenchmarkRunner.Run<SimpleValidationLibrariesComparisonBenchmark>(config);
+}

@@ -159,6 +159,9 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 		}
 	}
 
+	/// <summary>
+	/// Dispose the object using finalize for case developer forgets to dispose it.
+	/// </summary>
 	~PropertyValidationResult()
 	{
 		if (!Dispose(false))

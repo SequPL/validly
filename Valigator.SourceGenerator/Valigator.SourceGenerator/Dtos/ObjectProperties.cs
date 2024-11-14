@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Valigator.SourceGenerator.Utils;
 using Valigator.SourceGenerator.Utils.Mapping;
 
@@ -11,6 +12,11 @@ internal record ObjectProperties
 	public required EquatableArray<string> Usings { get; init; }
 
 	public required string ClassOrRecordKeyword { get; init; }
+
+	/// <summary>
+	/// Access modifier
+	/// </summary>
+	public required Accessibility Accessibility { get; init; }
 
 	/// <summary>
 	/// Namespace of the validator

@@ -35,7 +35,11 @@ internal static class ConfigOptionsProvider
 	{
 		RawValigatorConfiguration raw = Read(configurationXml);
 
-		return new ValigatorConfiguration { AutoRequired = ToBool(raw.AutoRequired) };
+		return new ValigatorConfiguration
+		{
+			AutoRequired = ToBool(raw.AutoRequired),
+			AutoInEnum = ToBool(raw.AutoInEnum),
+		};
 	}
 
 	private static RawValigatorConfiguration Read(string? configuration)
@@ -52,7 +56,7 @@ internal static class ConfigOptionsProvider
 			// Ignore
 		}
 
-		return new() { AutoRequired = "enable" };
+		return new() { AutoRequired = "enable", AutoInEnum = "enable" };
 	}
 
 	private static RawValigatorConfiguration Deserialize(string configuration)
@@ -77,8 +81,6 @@ internal static class ConfigOptionsProvider
 
 public class RawValigatorConfiguration
 {
-	/// <summary>
-	/// When enabled, the Required validator is automatically added to all properties that are not nullable
-	/// </summary>
 	public string? AutoRequired { get; set; }
+	public string? AutoInEnum { get; set; }
 }

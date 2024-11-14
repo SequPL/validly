@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
 using Valigator.SourceGenerator.Utils.FileBuilders;
 
 namespace Valigator.SourceGenerator.Utils;
@@ -66,6 +67,22 @@ internal class SourceTextBuilder
 	public SourceTextBuilder SetAccessModifier(string accessModifier)
 	{
 		_accessModifier = accessModifier;
+		return this;
+	}
+
+	public SourceTextBuilder SetAccessModifier(Accessibility accessModifier)
+	{
+		_accessModifier = accessModifier switch
+		{
+			Accessibility.Public => "public",
+			Accessibility.Private => "private",
+			Accessibility.Protected => "protected",
+			Accessibility.Internal => "internal",
+			Accessibility.ProtectedOrInternal => "protected internal",
+			Accessibility.ProtectedAndInternal => "private protected",
+			_ => "public",
+		};
+
 		return this;
 	}
 

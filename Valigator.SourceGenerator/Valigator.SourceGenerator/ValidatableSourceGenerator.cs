@@ -72,6 +72,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		// > public partial class Xxx : IValidatable, IInternalValidationInvoker { ... }
 		var validatorClassBuilder = SourceTextBuilder
 			.CreateClassOrRecord(properties.Object.ClassOrRecordKeyword, properties.Object.Name)
+			.SetAccessModifier(properties.Object.Accessibility)
 			.AddUsings(properties.Object.Usings.GetArray() ?? [])
 			.SetNamespace(properties.Object.Namespace)
 			.Partial()
@@ -391,18 +392,11 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 	{
 		var attributes = validatableProperty.ValidationAttributes.GetArray()?.ToList() ?? [];
 
-		// AUTO REQUIRED - Add Required validator if the property is not nullable
-		if (
-			config.AutoRequired
-			&& !validatableProperty.Nullable
-			&& attributes.All(x => x.QualifiedName != Consts.RequiredAttributeQualifiedName)
-		)
-		{
-			attributes.Add(AttributeProperties.Required);
-		}
+		// Add automatic validators
+		AddAutoValidators(attributes, validatableProperty, config);
 
 		// Skip properties without validators
-		if (validatableProperty.ValidationAttributes.Count == 0)
+		if (attributes.Count == 0)
 		{
 			return;
 		}
@@ -413,7 +407,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		var tupleTypeArguments = new List<string>();
 		var validatorRuleValidatorsLines = new List<string>();
 		var enumerableValidatorInvocationValidatorsLines = new List<string>();
-		var singleMessageValidatorInvocationValidatorsLines = new List<string>();
+		var singleMessageValidatorInvocationValidatorsLines = new List<(string Invocation, string Comment)>();
 		int itemNumber = 1;
 
 		foreach (var validationAttribute in attributes)
@@ -469,7 +463,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 			if (validator.IsValidMethod.ReturnType == Consts.ValidationMessageName)
 			{
-				singleMessageValidatorInvocationValidatorsLines.Add(validatorInvocation);
+				singleMessageValidatorInvocationValidatorsLines.Add((validatorInvocation, validator.QualifiedName));
 			}
 			else
 			{
@@ -535,7 +529,9 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 				if (existingMethod.ReturnType == Consts.ValidationMessageName)
 				{
-					singleMessageValidatorInvocationValidatorsLines.Add(customValidatorInvocation);
+					singleMessageValidatorInvocationValidatorsLines.Add(
+						(customValidatorInvocation, "Custom property validator")
+					);
 				}
 				else
 				{
@@ -587,11 +583,38 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		ruleValidateCalls.Add(validationCalls.ToString());
 	}
 
-	private static string CreateAddChain(List<string> invocations)
+	private static void AddAutoValidators(
+		List<AttributeProperties> attributes,
+		ValidatablePropertyProperties validatableProperty,
+		ValigatorConfiguration config
+	)
+	{
+		// AUTO REQUIRED - Add Required validator if the property is not nullable
+		if (
+			config.AutoRequired
+			&& !validatableProperty.Nullable
+			&& attributes.All(x => x.QualifiedName != Consts.RequiredAttributeQualifiedName)
+		)
+		{
+			attributes.Add(AttributeProperties.Required);
+		}
+
+		// InEnum - Add InEnum validator for Enum properties
+		if (
+			config.AutoInEnum
+			&& validatableProperty.PropertyTypeKind == TypeKind.Enum
+			&& attributes.All(x => x.QualifiedName != Consts.InEnumAttributeQualifiedName)
+		)
+		{
+			attributes.Add(AttributeProperties.InEnum);
+		}
+	}
+
+	private static string CreateAddChain(List<(string Invocation, string Comment)> invocations)
 	{
 		return string.Join(
 			Environment.NewLine + "\t\t\t\t",
-			invocations.Select(invocation => $".AddValidationMessage({invocation})")
+			invocations.Select(invocation => $".AddValidationMessage({invocation.Invocation}) // {invocation.Comment}")
 		);
 	}
 

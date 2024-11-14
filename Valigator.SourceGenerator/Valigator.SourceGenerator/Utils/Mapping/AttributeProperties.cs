@@ -15,6 +15,13 @@ internal record AttributeProperties
 			Arguments = EquatableArray<string>.Empty,
 		};
 
+	public static readonly AttributeProperties InEnum =
+		new()
+		{
+			QualifiedName = "Valigator.Extensions.Validators.Enums.InEnumAttribute",
+			Arguments = EquatableArray<string>.Empty,
+		};
+
 	/// <summary></summary>
 	public required string QualifiedName { get; init; }
 

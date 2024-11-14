@@ -50,6 +50,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 		{
 			Usings = new EquatableArray<string>(usings.Select(usingSyntax => usingSyntax.ToString()).ToArray()),
 			ClassOrRecordKeyword = typeSymbol.IsRecord ? "record" : "class",
+			Accessibility = typeSymbol.DeclaredAccessibility,
 			Name = typeSymbol.Name,
 			Namespace = typeSymbol.ContainingNamespace.ToString(),
 			Properties = new EquatableArray<ValidatablePropertyProperties>(properties),

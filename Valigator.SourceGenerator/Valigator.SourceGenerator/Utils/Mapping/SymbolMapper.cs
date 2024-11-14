@@ -45,6 +45,7 @@ internal static class SymbolMapper
 		{
 			PropertyName = propertySymbol.Name,
 			PropertyType = propertySymbol.Type.Name,
+			PropertyTypeKind = propertySymbol.Type.TypeKind,
 			Nullable =
 				propertySymbol.NullableAnnotation == NullableAnnotation.Annotated
 				|| (

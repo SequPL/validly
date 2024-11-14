@@ -10,6 +10,7 @@
 
 		<ValigatorConfiguration>
 			<AutoRequired>enabled</AutoRequired>
+			<AutoInEnum>enabled</AutoInEnum>
 		</ValigatorConfiguration>
     </PropertyGroup>
 	

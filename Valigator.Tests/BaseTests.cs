@@ -40,7 +40,7 @@ public partial class CreateUserRequest
 // [Validatable]
 // public partial class CreateUserRequest2 : CreateUserRequest { }
 
-public class UnitTest1
+public class BaseTests
 {
 	[Fact]
 	public void ValidateTest()

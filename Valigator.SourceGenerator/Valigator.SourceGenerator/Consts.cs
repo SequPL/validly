@@ -8,6 +8,7 @@ internal static class Consts
 	public const string CustomValidationAttribute =
 		$"Valigator.Validators.{nameof(Valigator.Validators.CustomValidationAttribute)}";
 	public const string RequiredAttributeQualifiedName = "Valigator.Extensions.Validators.Common.RequiredAttribute";
+	public const string InEnumAttributeQualifiedName = "Valigator.Extensions.Validators.Enums.InEnumAttribute";
 	public const string ValidatableAttributeQualifiedName = $"Valigator.{nameof(ValidatableAttribute)}";
 	public const string ValidatorAttributeQualifiedName = $"Valigator.Validators.{nameof(ValidatorAttribute)}";
 
