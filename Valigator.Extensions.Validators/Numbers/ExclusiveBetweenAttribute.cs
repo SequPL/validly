@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Numbers;
@@ -12,6 +13,7 @@ public class ExclusiveBetweenAttribute : Attribute
 {
 	private readonly decimal _min;
 	private readonly decimal _max;
+	private readonly ValidationMessage _message;
 
 	/// <param name="min">The minimum allowed value.</param>
 	/// <param name="max">The maximum allowed value.</param>
@@ -19,6 +21,7 @@ public class ExclusiveBetweenAttribute : Attribute
 	{
 		_min = min;
 		_max = max;
+		_message = CreateMessage();
 	}
 
 	/// <param name="min">The minimum allowed value.</param>
@@ -27,6 +30,7 @@ public class ExclusiveBetweenAttribute : Attribute
 	{
 		_min = min;
 		_max = max;
+		_message = CreateMessage();
 	}
 
 	/// <param name="min">The minimum allowed value.</param>
@@ -35,30 +39,28 @@ public class ExclusiveBetweenAttribute : Attribute
 	{
 		_min = (decimal)min;
 		_max = (decimal)max;
+		_message = CreateMessage();
 	}
+
+	private ValidationMessage CreateMessage() =>
+		new(
+			"Must be between {0} and {1} (exclusive).",
+			ValidationMessagesHelper.GenerateResourceKey(nameof(ExclusiveBetweenAttribute)),
+			_min,
+			_max
+		);
 
 	/// <summary>
 	/// Validate the value
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public ValidationMessage? IsValid(object? value)
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(object? value) // TODO: Add overloads to prevent conversion
 	{
-		if (value is null)
+		if (value is not null && ((decimal)value <= _min || (decimal)value >= _max))
 		{
-			return null;
-		}
-
-		decimal decimalValue = Convert.ToDecimal(value);
-
-		if (decimalValue <= _min || decimalValue >= _max)
-		{
-			return new ValidationMessage(
-				"Must be between {0} and {1} (exclusive).",
-				"Valigator.Validations.Between",
-				_min,
-				_max
-			);
+			return _message;
 		}
 
 		return null;

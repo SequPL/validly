@@ -52,21 +52,21 @@ public class SimpleValidationLibrariesComparisonBenchmark
 	public bool Valigator()
 	{
 		using var result = CreateUserRequestValid.Validate();
-		return result.Success;
+		return result.IsSuccess;
 	}
 
 	[Benchmark]
 	public bool ValigatorOneInvalid()
 	{
 		using var result = CreateUserRequestOneInvalid.Validate();
-		return result.Success;
+		return result.IsSuccess;
 	}
 
 	[Benchmark]
 	public bool ValigatorAllInvalid()
 	{
 		using var result = CreateUserRequestAllInvalid.Validate();
-		return result.Success;
+		return result.IsSuccess;
 	}
 
 	[Benchmark]

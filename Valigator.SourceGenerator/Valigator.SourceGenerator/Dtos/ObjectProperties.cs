@@ -7,6 +7,11 @@ namespace Valigator.SourceGenerator.Dtos;
 internal record ObjectProperties
 {
 	/// <summary>
+	/// Enables/disables auto validators
+	/// </summary>
+	public required bool? UseAutoValidators { get; init; }
+
+	/// <summary>
 	/// Usings from the validator's file
 	/// </summary>
 	public required EquatableArray<string> Usings { get; init; }
@@ -36,7 +41,7 @@ internal record ObjectProperties
 	/// <summary>
 	/// List of properties
 	/// </summary>
-	public required EquatableArray<ValidatablePropertyProperties> Properties { get; init; }
+	public required EquatableArray<PropertyProperties> Properties { get; init; }
 
 	/// <summary>
 	/// List of methods

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Numbers;
@@ -11,31 +12,43 @@ namespace Valigator.Extensions.Validators.Numbers;
 public class LessThanOrEqualAttribute : Attribute
 {
 	private readonly decimal _max;
+	private readonly ValidationMessage _message;
 
 	/// <param name="max">The maximum value.</param>
 	public LessThanOrEqualAttribute(decimal max)
 	{
 		_max = max;
+		_message = CreateMessage();
 	}
 
 	/// <param name="max">The maximum value.</param>
 	public LessThanOrEqualAttribute(int max)
 	{
 		_max = max;
+		_message = CreateMessage();
 	}
 
 	/// <param name="max">The maximum value.</param>
 	public LessThanOrEqualAttribute(double max)
 	{
 		_max = (decimal)max;
+		_message = CreateMessage();
 	}
+
+	private ValidationMessage CreateMessage() =>
+		new(
+			"Must be less than or equal to {0}.",
+			ValidationMessagesHelper.GenerateResourceKey(nameof(LessThanOrEqualAttribute)),
+			_max
+		);
 
 	/// <summary>
 	/// Validate the value
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public ValidationMessage? IsValid(object? value)
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(object? value) // TODO: Add overloads to prevent conversion
 	{
 		if (value is null)
 		{
@@ -46,11 +59,7 @@ public class LessThanOrEqualAttribute : Attribute
 
 		if (decimalValue > _max)
 		{
-			return new ValidationMessage(
-				"Must be less than or equal to {0}.",
-				"Valigator.Validations.LessThanOrEqual",
-				value
-			);
+			return _message;
 		}
 
 		return null;

@@ -70,9 +70,8 @@ internal static class ValidatorsIncrementalValueProvider
 			MethodName = Consts.IsValidMethodName,
 			ReturnType = "void",
 			ReturnTypeGenericArgument = null,
+			ReturnTypeType = ReturnTypeType.Void,
 			Dependencies = new EquatableArray<string>(),
-			IsAsync = false,
-			Awaitable = false,
 			RequiresInjection = false,
 		};
 }

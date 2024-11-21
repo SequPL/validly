@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Collections;
@@ -12,6 +13,7 @@ public class CollectionSizeBetweenAttribute : Attribute
 {
 	private readonly int _minSize;
 	private readonly int _maxSize;
+	private readonly ValidationMessage _message;
 
 	/// <param name="minSize">The minimum number of items allowed.</param>
 	/// <param name="maxSize">The maximum number of items allowed.</param>
@@ -20,6 +22,12 @@ public class CollectionSizeBetweenAttribute : Attribute
 	{
 		_minSize = minSize;
 		_maxSize = maxSize;
+		_message = new ValidationMessage(
+			"Must contain between {0} and {1} items.",
+			"Valigator.Validations.CollectionSizeBetween",
+			_minSize,
+			_maxSize
+		);
 	}
 
 	/// <summary>
@@ -27,33 +35,42 @@ public class CollectionSizeBetweenAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid<T>(ICollection<T>? value)
 	{
-		if (value is ICollection collection && (collection.Count < _minSize || collection.Count > _maxSize))
+		if (value is not null && (value.Count < _minSize || value.Count > _maxSize))
 		{
-			return CreateErrorValidationMessage();
-		}
-
-		if (value is IEnumerable enumerable)
-		{
-			int count = enumerable.Cast<object>().Count();
-
-			if (count < _minSize || count > _maxSize)
-			{
-				return CreateErrorValidationMessage();
-			}
+			return _message;
 		}
 
 		return null;
 	}
 
-	private ValidationMessage CreateErrorValidationMessage()
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
 	{
-		return new ValidationMessage(
-			"Must contain between {0} and {1} items.",
-			"Valigator.Validations.CollectionSizeBetween",
-			_minSize,
-			_maxSize
-		);
+		if (value is null)
+		{
+			return null;
+		}
+
+		if (value is ICollection<T> collection)
+		{
+			return IsValid(collection);
+		}
+
+		int count = value.Count();
+
+		if (count < _minSize || count > _maxSize)
+		{
+			return _message;
+		}
+
+		return null;
 	}
 }

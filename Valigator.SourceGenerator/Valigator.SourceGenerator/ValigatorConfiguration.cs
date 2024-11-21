@@ -11,4 +11,10 @@ public record ValigatorConfiguration
 	/// When enabled, the InEnum validator is automatically added to all properties that are of enum type
 	/// </summary>
 	public required bool AutoInEnum { get; init; }
+
+	// TODO: Implement this option
+	/// <summary>
+	/// When enabled, validation will exit early on the first validation failure
+	/// </summary>
+	public required bool ExitEarly { get; init; }
 }

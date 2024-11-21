@@ -1,10 +1,10 @@
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
-using Valigator.SourceGenerator.Utils.FileBuilders;
+using Valigator.SourceGenerator.Utils.SourceTexts.FileBuilders;
 
-namespace Valigator.SourceGenerator.Utils;
+namespace Valigator.SourceGenerator.Utils.SourceTexts;
 
-internal class SourceTextBuilder
+internal class DeclarationBuilder
 {
 	private readonly List<string> _usings = new();
 	private string? _namespace;
@@ -16,61 +16,61 @@ internal class SourceTextBuilder
 
 	private readonly List<string> _baseClasses = new();
 	private readonly List<string> _interfaces = new();
-	private readonly List<FilePart> _memberSources = new();
+	private readonly List<SourceTextSectionBuilder> _memberSources = new();
 	private string _name = string.Empty;
 	private string _partial = string.Empty;
 	private string _accessModifier = "public";
 	private string _static = string.Empty;
 
-	private SourceTextBuilder() { }
+	private DeclarationBuilder() { }
 
-	public static SourceTextBuilder CreateClassOrRecord(string keyword, string name)
+	public static DeclarationBuilder CreateClassOrRecord(string keyword, string name)
 	{
-		var builder = new SourceTextBuilder { _name = name, _declarationKeyword = keyword };
+		var builder = new DeclarationBuilder { _name = name, _declarationKeyword = keyword };
 
 		return builder;
 	}
 
-	public static SourceTextBuilder CreateInterface(string name)
+	public static DeclarationBuilder CreateInterface(string name)
 	{
-		var builder = new SourceTextBuilder { _name = name, _declarationKeyword = "interface" };
+		var builder = new DeclarationBuilder { _name = name, _declarationKeyword = "interface" };
 
 		return builder;
 	}
 
-	public static SourceTextBuilder CreateClass(string name)
+	public static DeclarationBuilder CreateClass(string name)
 	{
-		var builder = new SourceTextBuilder { _name = name, _declarationKeyword = "class" };
+		var builder = new DeclarationBuilder { _name = name, _declarationKeyword = "class" };
 
 		return builder;
 	}
 
-	public static SourceTextBuilder CreateRecord(string name)
+	public static DeclarationBuilder CreateRecord(string name)
 	{
-		var builder = new SourceTextBuilder { _name = name, _declarationKeyword = "record" };
+		var builder = new DeclarationBuilder { _name = name, _declarationKeyword = "record" };
 
 		return builder;
 	}
 
-	public SourceTextBuilder AddUsings(params string[] usings)
+	public DeclarationBuilder AddUsings(params string[] usings)
 	{
 		_usings.AddRange(usings);
 		return this;
 	}
 
-	public SourceTextBuilder SetNamespace(string @namespace)
+	public DeclarationBuilder SetNamespace(string @namespace)
 	{
 		_namespace = @namespace;
 		return this;
 	}
 
-	public SourceTextBuilder SetAccessModifier(string accessModifier)
+	public DeclarationBuilder SetAccessModifier(string accessModifier)
 	{
 		_accessModifier = accessModifier;
 		return this;
 	}
 
-	public SourceTextBuilder SetAccessModifier(Accessibility accessModifier)
+	public DeclarationBuilder SetAccessModifier(Accessibility accessModifier)
 	{
 		_accessModifier = accessModifier switch
 		{
@@ -86,31 +86,31 @@ internal class SourceTextBuilder
 		return this;
 	}
 
-	public SourceTextBuilder AddBaseClasses(params string[] baseClasses)
+	public DeclarationBuilder AddBaseClasses(params string[] baseClasses)
 	{
 		_baseClasses.AddRange(baseClasses);
 		return this;
 	}
 
-	public SourceTextBuilder AddInterfaces(params string[] interfaces)
+	public DeclarationBuilder AddInterfaces(params string[] interfaces)
 	{
 		_interfaces.AddRange(interfaces);
 		return this;
 	}
 
-	public SourceTextBuilder AddMember(FilePart memberSource)
+	public DeclarationBuilder AddMember(SourceTextSectionBuilder memberSource)
 	{
 		_memberSources.Add(memberSource);
 		return this;
 	}
 
-	public SourceTextBuilder Partial()
+	public DeclarationBuilder Partial()
 	{
 		_partial = "partial";
 		return this;
 	}
 
-	public SourceTextBuilder Static()
+	public DeclarationBuilder Static()
 	{
 		_static = "static";
 		return this;
@@ -139,7 +139,7 @@ internal class SourceTextBuilder
 		classBuilder.AppendLine("{");
 
 		// Add MEMBERs
-		foreach (FilePart memberSource in _memberSources)
+		foreach (SourceTextSectionBuilder memberSource in _memberSources)
 		{
 			memberSource.Indent();
 			classBuilder.AddPart(memberSource);
@@ -165,7 +165,7 @@ internal class SourceTextBuilder
 
 		var namespaceBuilder = new FileBuilder().AppendLine($"namespace {_namespace}").AppendLine("{");
 
-		foreach (FilePart part in code.Parts)
+		foreach (SourceTextSectionBuilder part in code.Parts)
 		{
 			part.Indent();
 		}

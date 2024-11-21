@@ -89,7 +89,12 @@ internal struct HashCode
 		return (int)hash;
 	}
 
-	public static int Combine<T1, T2, T3, T4>(T1 value1, T2 value2, T3 value3, T4 value4)
+	public static int Combine<T1, T2, T3, T4>(
+		T1 value1,
+		T2 value2,
+		T3 value3,
+		T4 value4
+	)
 	{
 		uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
 		uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
@@ -110,7 +115,13 @@ internal struct HashCode
 		return (int)hash;
 	}
 
-	public static int Combine<T1, T2, T3, T4, T5>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5)
+	public static int Combine<T1, T2, T3, T4, T5>(
+		T1 value1,
+		T2 value2,
+		T3 value3,
+		T4 value4,
+		T5 value5
+	)
 	{
 		uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
 		uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
@@ -134,7 +145,14 @@ internal struct HashCode
 		return (int)hash;
 	}
 
-	public static int Combine<T1, T2, T3, T4, T5, T6>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6)
+	public static int Combine<T1, T2, T3, T4, T5, T6>(
+		T1 value1,
+		T2 value2,
+		T3 value3,
+		T4 value4,
+		T5 value5,
+		T6 value6
+	)
 	{
 		uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
 		uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
@@ -236,7 +254,12 @@ internal struct HashCode
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static void Initialize(out uint v1, out uint v2, out uint v3, out uint v4)
+	private static void Initialize(
+		out uint v1,
+		out uint v2,
+		out uint v3,
+		out uint v4
+	)
 	{
 		v1 = SSeed + Prime1 + Prime2;
 		v2 = SSeed + Prime2;
@@ -257,7 +280,12 @@ internal struct HashCode
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static uint MixState(uint v1, uint v2, uint v3, uint v4)
+	private static uint MixState(
+		uint v1,
+		uint v2,
+		uint v3,
+		uint v4
+	)
 	{
 		return RotateLeft(v1, 1) + RotateLeft(v2, 7) + RotateLeft(v3, 12) + RotateLeft(v4, 18);
 	}

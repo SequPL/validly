@@ -15,7 +15,7 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 
 	private static readonly ArrayPool<ValidationMessage> ValidationMessagePool = ArrayPool<ValidationMessage>.Shared;
 
-	private bool? _success;
+	private bool? _isSuccess;
 	private string _propertyName = null!;
 	private IReadOnlyList<ValidationMessage>? _messages;
 
@@ -58,7 +58,7 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	/// <summary>
 	/// True if validation of this property was successful
 	/// </summary>
-	public bool Success => _success ??= _messagesArrayItemCount == 0 && !(_messagesEnumerable?.Any() ?? false);
+	public bool IsSuccess => _isSuccess ??= _messagesArrayItemCount == 0 && !(_messagesEnumerable?.Any() ?? false);
 
 	static PropertyValidationResult() { }
 
@@ -66,23 +66,59 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	/// Creates new instance of <see cref="PropertyValidationResult"/>
 	/// </summary>
 	/// <param name="propertyName"></param>
-	/// <param name="enumerableMessages"></param>
 	/// <returns></returns>
 	public static PropertyValidationResult Create(
-		string propertyName,
-		IEnumerable<ValidationMessage>? enumerableMessages = null
+		string propertyName
+	// IEnumerable<ValidationMessage>? enumerableMessages = null
 	)
 	{
 		var result = Pool.Get();
 		result.Reset(propertyName);
 
-		if (enumerableMessages is not null)
-		{
-			result._messagesEnumerable = enumerableMessages; //new AnyAbleLazyEnumerator<ValidationMessage>(enumerableMessages);
-		}
+		// if (enumerableMessages is not null)
+		// {
+		// 	result._messagesEnumerable = enumerableMessages; //new AnyAbleLazyEnumerator<ValidationMessage>(enumerableMessages);
+		// }
 
 		return result;
 	}
+
+	// /// <summary>
+	// /// Creates new instance of <see cref="PropertyValidationResult"/>
+	// /// </summary>
+	// /// <param name="propertyName"></param>
+	// /// <param name="enumerableMessages"></param>
+	// /// <returns></returns>
+	// public static async ValueTask<PropertyValidationResult> Create(
+	// 	string propertyName,
+	// 	IAsyncEnumerable<ValidationMessage>? enumerableMessages = null
+	// )
+	// {
+	// 	var result = Pool.Get();
+	// 	result.Reset(propertyName);
+	//
+	// 	if (enumerableMessages is not null)
+	// 	{
+	// 		// TODO: Do some kind of lazy evaluation? PropertyValidationResult has GetMessages() method which is not async
+	// 		result._messagesEnumerable = await Enumerate(enumerableMessages);
+	// 	}
+	//
+	// 	return result;
+	// }
+
+	// private static async ValueTask<IEnumerable<ValidationMessage>> Enumerate(
+	// 	IAsyncEnumerable<ValidationMessage> enumerableMessages
+	// )
+	// {
+	// 	var list = new List<ValidationMessage>();
+	//
+	// 	await foreach (var message in enumerableMessages)
+	// 	{
+	// 		list.Add(message);
+	// 	}
+	//
+	// 	return list;
+	// }
 
 	private void Reset(string propertyName)
 	{
@@ -117,7 +153,7 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	bool IResettable.TryReset()
 	{
 		_propertyName = null!;
-		_success = null;
+		_isSuccess = null;
 		_messages = null;
 		_messagesEnumerable = null;
 		_messagesArrayItemCount = 0;

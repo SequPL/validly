@@ -1,10 +1,12 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Valigator.SourceGenerator.Builders;
 using Valigator.SourceGenerator.Dtos;
 using Valigator.SourceGenerator.Utils;
-using Valigator.SourceGenerator.Utils.FileBuilders;
 using Valigator.SourceGenerator.Utils.Mapping;
+using Valigator.SourceGenerator.Utils.SourceTexts;
+using Valigator.SourceGenerator.Utils.SourceTexts.FileBuilders;
 using Valigator.SourceGenerator.ValueProviders;
 
 namespace Valigator.SourceGenerator;
@@ -36,45 +38,66 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		) properties
 	)
 	{
-		bool hasCustomValidation = false;
-		bool isAsync = properties.Object.Methods.Any(m => m.IsAsync);
-		string customValidationInterfaceSourceText = string.Empty;
+		// bool isAsync = properties.Object.Methods.Any(m => (m.ReturnTypeType & ReturnTypeType.Async) != 0);
 
-		var validatorRules = new FilePart();
-		var ruleValidateCalls = new List<string>();
-		var customValidationMethodsForInterface = new FilePart();
-		var dependencies = new HashSet<string>();
+		// var ruleValidateCalls = new List<string>();
+		// var dependencies = new HashSet<string>();
 		var methods = properties.Object.Methods.ToDictionary(x => x.MethodName, x => x);
 
 		// Name of the class with RULEs
 		string rulesClassName = $"{properties.Object.Name}Rules";
 		string customValidatorInterfaceName = $"I{properties.Object.Name}CustomValidation";
 
+		var dependencies = new DependenciesTracker();
+
+		// Builders
+		var rulesClassBuilder = new RulesClassBuilder(rulesClassName);
+		var customValidationsInterfaceBuilder = new CustomValidationInterfaceBuilder(
+			customValidatorInterfaceName,
+			dependencies
+		).WithMethods(methods);
+		var invocationBuilder = new PropertiesValidationInvocationBuilder(
+			rulesClassName,
+			properties.Config,
+			dependencies
+		);
+
 		// Generate stuff for each property
-		foreach (ValidatablePropertyProperties property in properties.Object.Properties)
+		foreach (PropertyProperties property in properties.Object.Properties)
 		{
+			var attributes = ToAttributeList(properties, property);
+
+			// Skip properties without validators
+			if (attributes.Count == 0)
+			{
+				continue;
+			}
+
 			ProcessValidatableProperty(
 				property,
-				properties.Config,
 				properties.Validators,
-				methods,
-				dependencies,
-				validatorRules,
-				ruleValidateCalls,
-				customValidationMethodsForInterface,
-				rulesClassName,
-				ref hasCustomValidation,
-				ref isAsync
+				attributes,
+				// dependencies,
+				rulesClassBuilder,
+				customValidationsInterfaceBuilder,
+				invocationBuilder
+			// validatorRules,
+			// ruleValidateCalls,
+			// customValidationMethodsForInterface,
+			// rulesClassName
+			// ref isAsync
 			);
 		}
 
+		bool isAsync = customValidationsInterfaceBuilder.Calls.AnyAsync() || false; // TODO: Doplnit call builder check
+
 		// Generate the validator part for the original object
 		// > public partial class Xxx : IValidatable, IInternalValidationInvoker { ... }
-		var validatorClassBuilder = SourceTextBuilder
+		var validatorClassBuilder = DeclarationBuilder
 			.CreateClassOrRecord(properties.Object.ClassOrRecordKeyword, properties.Object.Name)
 			.SetAccessModifier(properties.Object.Accessibility)
 			.AddUsings(properties.Object.Usings.GetArray() ?? Array.Empty<string>())
-			.SetNamespace(properties.Object.Namespace)
+			// .SetNamespace(properties.Object.Namespace)
 			.Partial()
 			.AddInterfaces(Consts.IValidatableGlobalRef)
 			.AddInterfaces(Consts.InternalValidationInvokerGlobalRef)
@@ -82,72 +105,79 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				CreateValidateMethod(
 					properties,
 					dependencies,
-					hasCustomValidation,
+					customValidationsInterfaceBuilder.HasAnyMethod(),
 					customValidatorInterfaceName,
-					ruleValidateCalls,
+					invocationBuilder,
 					isAsync
 				)
 			);
 
-		// If custom validation is used, generate the interface and add it to the validator class
-		// > internal interface IXxxCustomValidation { ... }
-		if (hasCustomValidation)
+		// If custom validation is used, add generated interface to the validator class
+		if (customValidationsInterfaceBuilder.HasAnyMethod())
 		{
-			var customValidationInterface = SourceTextBuilder
-				.CreateInterface(customValidatorInterfaceName)
-				.SetAccessModifier("internal")
-				.SetNamespace(properties.Object.Namespace)
-				.AddMember(customValidationMethodsForInterface);
-
 			// Add the interface on validator part of the original object
 			validatorClassBuilder.AddInterfaces(customValidatorInterfaceName);
-
-			customValidationInterfaceSourceText = customValidationInterface.Build();
 		}
 
-		// Create separated class with rules; so it's not visible in the original object
-		// > file class XxxRules { ... }
-		var validatorRulesClassBuilder = CreateValidatorRulesClassBuilder(
-			properties.Object,
-			rulesClassName,
-			validatorRules
-		);
-
-		var validator =
+		var sourceText =
 			"// <auto-generated/>"
 			+ Environment.NewLine
 			+ "# nullable enable"
 			+ Environment.NewLine
 			+ Environment.NewLine
+			+ $"namespace {properties.Object.Namespace}{Environment.NewLine}{{{Environment.NewLine}"
 			+ validatorClassBuilder.Build()
-			+ validatorRulesClassBuilder.Build()
-			+ customValidationInterfaceSourceText;
+			+ Environment.NewLine
+			+ rulesClassBuilder.Build(indent: 1)
+			+ Environment.NewLine
+			+ customValidationsInterfaceBuilder.Build(indent: 1)
+			+ Environment.NewLine
+			+ "}";
 
-		context.AddSource($"{properties.Object.Name}.Validator.g.cs", SourceText.From(validator, Encoding.UTF8));
+		context.AddSource($"{properties.Object.Name}.Validator.g.cs", SourceText.From(sourceText, Encoding.UTF8));
 	}
 
-	private static FilePart CreateValidateMethod(
+	/// <summary>
+	/// Create list of validation attributes. Include auto validators if enabled.
+	/// </summary>
+	/// <param name="properties"></param>
+	/// <param name="property"></param>
+	/// <returns></returns>
+	private static List<AttributeProperties> ToAttributeList(
 		(
 			ObjectProperties Object,
 			ValigatorConfiguration Config,
 			EquatableArray<ValidatorProperties> Validators
 		) properties,
-		HashSet<string> dependencies,
+		PropertyProperties property
+	)
+	{
+		var attributes = property.ValidationAttributes.GetArray()?.ToList() ?? new List<AttributeProperties>();
+
+		// Add automatic validators
+		AddAutoValidators(attributes, property, properties.Config, properties.Object.UseAutoValidators);
+
+		return attributes;
+	}
+
+	private static SourceTextSectionBuilder CreateValidateMethod(
+		(
+			ObjectProperties Object,
+			ValigatorConfiguration Config,
+			EquatableArray<ValidatorProperties> Validators
+		) properties,
+		DependenciesTracker dependencies,
 		bool hasCustomValidation,
 		string customValidatorInterfaceName,
-		List<string> ruleValidateCalls,
+		PropertiesValidationInvocationBuilder invocationBuilder,
 		bool isAsync
 	)
 	{
 		var asyncKeyword = isAsync ? "async " : string.Empty;
-		var validateReturnType = isAsync
-			? $"ValueTask<{Consts.ValidationResultGlobalRef}>"
-			: Consts.ValidationResultGlobalRef;
-		var overrideVirtual = properties.Object.InheritsValidatableObject ? "override" : "virtual";
 
-		var validateMethodFilePart = new FilePart()
+		var validateMethodFilePart = new SourceTextSectionBuilder()
 			.AppendLine("/// <inheritdoc />")
-			.Append($"ValueTask<{Consts.ValidationResultGlobalRef}>")
+			.Append($"{asyncKeyword}ValueTask<{Consts.ValidationResultGlobalRef}>")
 			.AppendLine($" {Consts.InternalValidationInvokerGlobalRef}.Validate(")
 			.AppendLine($"\t{Consts.ValidationContextGlobalRef} context,")
 			.AppendLine($"\t{Consts.ServiceProviderGlobalRef}? serviceProvider")
@@ -178,7 +208,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				.AppendLine();
 		}
 
-		if (dependencies.Count > 0)
+		if (dependencies.Dependencies.Count > 0)
 		{
 			validateMethodFilePart
 				.AppendLine("\t// Required services")
@@ -186,7 +216,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				.AppendLine(
 					string.Join(
 						Environment.NewLine,
-						dependencies.Select(dependency =>
+						dependencies.Dependencies.Select(dependency =>
 							$"\tvar service{dependency} = serviceProvider!.GetRequiredService<{dependency}>();"
 						)
 					)
@@ -197,13 +227,14 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		// BeforeValidate hook
 		AppendBeforeValidateHook(properties.Object, validateMethodFilePart, isAsync);
 
-		// TODO: Pro property, které jsou validatable, zavolat Validate() a přidat výsledek do resultu; asi bude potřeba udělat runtime check `prop is IContextValidatable` aj. udělat typy pro každou variantu a za běhu ověřit a obvolat
-
 		// > result.AddPropertyResult
-		foreach (string validateCall in ruleValidateCalls)
-		{
-			validateMethodFilePart.AppendLine(validateCall);
-		}
+		// foreach (string validateCall in ruleValidateCalls)
+		// {
+		// 	validateMethodFilePart.AppendLine(validateCall);
+		// }
+
+		// Add INVOCATIONS
+		validateMethodFilePart.AppendLine(invocationBuilder.Build(indent: 2));
 
 		if (properties.Object.InheritsValidatableObject)
 		{
@@ -232,24 +263,29 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		validateMethodFilePart
 			.AppendLine()
 			.AppendLine("/// <inheritdoc />")
-			.Append($"ValueTask<{Consts.ValidationResultGlobalRef}>")
+			.Append($"async ValueTask<{Consts.ValidationResultGlobalRef}>")
 			.Append($" {Consts.IValidatableGlobalRef}.Validate(IServiceProvider serviceProvider)")
 			.AppendLine("{")
 			.AppendLine($"\tusing var validationContext = {Consts.ValidationContextGlobalRef}.Create(this);")
 			.AppendLine(
-				$"\treturn (({Consts.InternalValidationInvokerGlobalRef})this).Validate(validationContext, serviceProvider);"
+				$"\treturn await (({Consts.InternalValidationInvokerGlobalRef})this).Validate(validationContext, serviceProvider);"
 			)
 			.AppendLine("}");
 
-		var serviceProviderDep = dependencies.Count > 0 ? "serviceProvider" : "null";
+		var serviceProviderDep = dependencies.Dependencies.Count > 0 ? "serviceProvider" : "null";
 
 		// Validate() method
+		var validateReturnType = isAsync
+			? $"ValueTask<{Consts.ValidationResultGlobalRef}>"
+			: Consts.ValidationResultGlobalRef;
+		var overrideVirtual = properties.Object.InheritsValidatableObject ? "override" : "virtual";
+
 		validateMethodFilePart
 			.AppendLine()
 			.AppendLine("/// <summary>Validate the object.</summary>")
 			// > public virtual async ValueTask<ValidationResult> Validate(
 			.Append($"public {overrideVirtual} {asyncKeyword}{validateReturnType} Validate(")
-			.AppendIf($"{Consts.ServiceProviderGlobalRef} serviceProvider", dependencies.Count > 0)
+			.AppendIf($"{Consts.ServiceProviderGlobalRef} serviceProvider", dependencies.Dependencies.Count > 0)
 			.AppendLine(")")
 			.AppendLine("{")
 			.AppendLine($"\tusing var validationContext = {Consts.ValidationContextGlobalRef}.Create(this);")
@@ -268,7 +304,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 	private static void AppendBeforeValidateHook(
 		ObjectProperties objectProperties,
-		FilePart validateMethodFilePart,
+		SourceTextSectionBuilder validateMethodSourceTextSection,
 		bool isAsync
 	)
 	{
@@ -277,7 +313,10 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			return;
 		}
 
-		string awaitKeyword = objectProperties.BeforeValidateMethod.Awaitable ? "await " : string.Empty;
+		string awaitKeyword =
+			(objectProperties.BeforeValidateMethod.ReturnTypeType & ReturnTypeType.Awaitable) != 0
+				? "await "
+				: string.Empty;
 
 		// VOID
 		if (
@@ -285,7 +324,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			&& objectProperties.BeforeValidateMethod.ReturnTypeGenericArgument is null
 		)
 		{
-			validateMethodFilePart
+			validateMethodSourceTextSection
 				.AppendLine("// BEFORE Validate()")
 				.AppendLine($"\t{awaitKeyword}BeforeValidate();")
 				.AppendLine();
@@ -299,7 +338,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			|| objectProperties.BeforeValidateMethod.ReturnTypeGenericArgument == Consts.ValidationResultName
 		)
 		{
-			validateMethodFilePart
+			validateMethodSourceTextSection
 				.AppendLine("\t// BEFORE Validate()")
 				.AppendLine($"\tvar beforeValidate = {awaitKeyword}BeforeValidate();")
 				.AppendLine()
@@ -312,15 +351,15 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		}
 
 		// IEnumerable | IAsyncEnumerable
-		validateMethodFilePart
+		validateMethodSourceTextSection
 			.AppendLine("\t// BEFORE Validate()")
-			.AppendLine("\tresult.AddGlobalMessages(BeforeValidate())")
+			.AppendLine("\tresult.AddGlobalMessages(BeforeValidate());")
 			.AppendLine();
 	}
 
 	private static bool AppendAfterValidateHook(
 		ObjectProperties objectProperties,
-		FilePart validateMethodFilePart,
+		SourceTextSectionBuilder validateMethodSourceTextSection,
 		bool isAsync
 	)
 	{
@@ -329,16 +368,21 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			return false;
 		}
 
-		string afterValidateAwaitKeyword = objectProperties.AfterValidateMethod.Awaitable ? "await " : string.Empty;
+		string afterValidateAwaitKeyword =
+			(objectProperties.AfterValidateMethod.ReturnTypeType & ReturnTypeType.Awaitable) != 0
+				? "await "
+				: string.Empty;
 		string helperAwaitKeyword =
-			objectProperties.AfterValidateMethod.ReturnType == "IAsyncEnumerable" ? "await " : string.Empty;
+			(objectProperties.AfterValidateMethod.ReturnTypeType & ReturnTypeType.AsyncEnumerable) != 0
+				? "await "
+				: string.Empty;
 
 		if (
 			objectProperties.AfterValidateMethod.ReturnType is "void" or "Task"
 			&& objectProperties.AfterValidateMethod.ReturnTypeGenericArgument is null
 		)
 		{
-			validateMethodFilePart
+			validateMethodSourceTextSection
 				.AppendLine("// AFTER Validate()")
 				.AppendLine($"\t{afterValidateAwaitKeyword}AfterValidate();")
 				.AppendLine();
@@ -348,13 +392,13 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 		if (isAsync)
 		{
-			validateMethodFilePart.AppendLine(
+			validateMethodSourceTextSection.AppendLine(
 				$"\treturn {helperAwaitKeyword}{Consts.ValidationResultHelperGlobalRef}.ReplaceOrAddMessages(result, {afterValidateAwaitKeyword}AfterValidate(result));"
 			);
 		}
 		else
 		{
-			validateMethodFilePart.AppendLine(
+			validateMethodSourceTextSection.AppendLine(
 				$"\treturn ValueTask.FromResult({Consts.ValidationResultHelperGlobalRef}.ReplaceOrAddMessages(result, AfterValidate(result)));"
 			);
 		}
@@ -362,13 +406,13 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		return true;
 	}
 
-	private static SourceTextBuilder CreateValidatorRulesClassBuilder(
+	private static DeclarationBuilder CreateValidatorRulesClassBuilder(
 		ObjectProperties objectProperties,
 		string rulesClassName,
-		FilePart validatorRules
+		SourceTextSectionBuilder validatorRules
 	)
 	{
-		return SourceTextBuilder
+		return DeclarationBuilder
 			.CreateClass(rulesClassName)
 			.Static()
 			.SetAccessModifier("file")
@@ -377,47 +421,26 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 	}
 
 	private static void ProcessValidatableProperty(
-		ValidatablePropertyProperties validatableProperty,
-		ValigatorConfiguration config,
+		PropertyProperties validatableProperty,
 		EquatableArray<ValidatorProperties> validators,
-		Dictionary<string, MethodProperties> methods,
-		HashSet<string> dependencies,
-		FilePart validatorRulesFilePart,
-		List<string> ruleValidateCalls,
-		FilePart customValidationMethodsForInterface,
-		string rulesClassName,
-		ref bool hasCustomValidation,
-		ref bool isAsync
+		List<AttributeProperties> attributes,
+		RulesClassBuilder rulesClassBuilder,
+		CustomValidationInterfaceBuilder customValidationInterfaceBuilder,
+		PropertiesValidationInvocationBuilder invocationBuilder
 	)
 	{
-		var attributes =
-			validatableProperty.ValidationAttributes.GetArray()?.ToList() ?? new List<AttributeProperties>();
+		// var validatorsCallBuilder = new ValidatorsCallBuilder();
+		// var singleMessageValidatorInvocationValidatorsLines = new List<(string Invocation, string Comment)>();
 
-		// Add automatic validators
-		AddAutoValidators(attributes, validatableProperty, config);
-
-		// Skip properties without validators
-		if (attributes.Count == 0)
-		{
-			return;
-		}
-
-		bool thisRuleHasCustomValidation = false;
-		string ruleName = $"{validatableProperty.PropertyName}Rule";
-
-		var tupleTypeArguments = new List<string>();
-		var validatorRuleValidatorsLines = new List<string>();
-		var enumerableValidatorInvocationValidatorsLines = new List<string>();
-		var singleMessageValidatorInvocationValidatorsLines = new List<(string Invocation, string Comment)>();
-		int itemNumber = 1;
+		var attributesWithValidators = new List<(AttributeProperties, ValidatorProperties)>(attributes.Count);
+		var propertyCalls = new CallsCollection();
 
 		foreach (var validationAttribute in attributes)
 		{
 			// CUSTOM validation
 			if (validationAttribute.QualifiedName == Consts.CustomValidationAttribute)
 			{
-				thisRuleHasCustomValidation = true;
-				hasCustomValidation = true;
+				customValidationInterfaceBuilder.AddCustomValidationForProperty(validatableProperty, propertyCalls);
 				continue;
 			}
 
@@ -430,169 +453,78 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				continue;
 			}
 
-			// Check if the method is ASYNC
-			if (validator.IsValidMethod.IsAsync)
-			{
-				isAsync = true;
-			}
+			attributesWithValidators.Add((validationAttribute, validator));
 
-			// Add dependencies to list (except the ValidationContext)
-			foreach (var service in validator.IsValidMethod.Dependencies)
-			{
-				if (service == Consts.ValidationContextName)
-				{
-					continue;
-				}
-
-				dependencies.Add(service);
-			}
-
-			tupleTypeArguments.Add($"\t\t\tglobal::{validator.QualifiedName}");
-			validatorRuleValidatorsLines.Add(
-				$"\t\t\tnew global::{validator.QualifiedName}({string.Join(", ", validationAttribute.Arguments)})"
-			);
-
-			// > XxxRules.NameRule.Item1.IsValid(Xyz, serviceSomeService)
-			var args = string.Join(
-				", ",
-				new[] { validatableProperty.PropertyName }.Concat(
-					validator.IsValidMethod.Dependencies.Select(service => $"service{service}")
-				)
-			);
-
-			var validatorInvocation = $"{rulesClassName}.{ruleName}.Item{itemNumber}.IsValid({args})";
-
-			if (validator.IsValidMethod.ReturnType == Consts.ValidationMessageName)
-			{
-				singleMessageValidatorInvocationValidatorsLines.Add((validatorInvocation, validator.QualifiedName));
-			}
-			else
-			{
-				enumerableValidatorInvocationValidatorsLines.Add(validatorInvocation);
-			}
-
-			itemNumber++;
+			// // Check if the method is ASYNC
+			// if ((validator.IsValidMethod.ReturnTypeType & ReturnTypeType.Async) != 0)
+			// {
+			// 	isAsync = true;
+			// }
+			//
+			// // Add dependencies to list (except the ValidationContext)
+			// foreach (var service in validator.IsValidMethod.Dependencies)
+			// {
+			// 	if (service == Consts.ValidationContextName)
+			// 	{
+			// 		continue;
+			// 	}
+			//
+			// 	dependencies.Add(service);
+			// }
 		}
 
-		validatorRulesFilePart
-			.Append("internal static readonly ValueTuple<" + Environment.NewLine)
-			.AppendLine(string.Join(", " + Environment.NewLine, tupleTypeArguments))
-			.Append($"> {ruleName} = (")
-			.AppendIf(
-				$"ValueTuple.Create({validatorRuleValidatorsLines[0].TrimStart()})",
-				validatorRuleValidatorsLines.Count == 1
-			)
-			.AppendLineIf(
-				Environment.NewLine + string.Join("," + Environment.NewLine, validatorRuleValidatorsLines),
-				validatorRuleValidatorsLines.Count > 1
-			)
-			.AppendLine(");")
-			.AppendLine();
+		// Generate RULE
+		rulesClassBuilder.AddRuleForProperty(validatableProperty, attributesWithValidators);
 
-		if (thisRuleHasCustomValidation)
-		{
-			// Generate CUSTOM validation method to the interface
+		// Generate INVOCATION
+		invocationBuilder.AddInvocationForProperty(validatableProperty, attributesWithValidators, propertyCalls);
 
-			if (methods.TryGetValue($"Validate{validatableProperty.PropertyName}", out var existingMethod))
-			{
-				// Check if the method is ASYNC
-				if (existingMethod.IsAsync)
-				{
-					isAsync = true;
-				}
+		// // Generate INVOCATION `xxRule.IsValid()`
+		// var validationCalls = new StringBuilder();
+		// validationCalls.Append(
+		// 	@$"	// Validate {validatableProperty.PropertyName}
+		// 	context.SetProperty(""{validatableProperty.PropertyName}"");
+		// 	result.AddPropertyResult(
+		// 		{Consts.PropertyValidationResultGlobalRef}.Create(
+		// 			""{validatableProperty.PropertyName}"""
+		// );
+		//
+		// if (enumerableValidatorInvocationValidatorsLines.Count != 0)
+		// {
+		// 	validationCalls.Append(
+		// 		@$",
+		// 			{CreateConcatenation(enumerableValidatorInvocationValidatorsLines)}"
+		// 	);
+		// }
+		//
+		// validationCalls.AppendLine(
+		// 	@$"
+		// 		)
+		// 		{CreateAddChain(singleMessageValidatorInvocationValidatorsLines)}
+		// 	);"
+		// );
+		//
+		// ruleValidateCalls.Add(validationCalls.ToString());
 
-				customValidationMethodsForInterface
-					.AppendLine(
-						$"/// <summary>Custom validation method for property '{validatableProperty.PropertyName}'.</summary>"
-					)
-					.Append($"{existingMethod.ReturnType}")
-					.AppendIf(
-						$"<{existingMethod.ReturnTypeGenericArgument}>",
-						existingMethod.ReturnTypeGenericArgument is not null
-					)
-					.Append($" Validate{validatableProperty.PropertyName}(");
-
-				var customValidationDependencies = new List<string>();
-
-				foreach (string service in existingMethod.Dependencies)
-				{
-					customValidationDependencies.Add(
-						$"{service} {service.Substring(0, 1).ToLower() + service.Substring(1)}"
-					);
-				}
-
-				customValidationMethodsForInterface.Append(string.Join(", ", customValidationDependencies));
-
-				// Add INVOCATION
-				var customValidatorInvocation =
-					$"customValidator.Validate{validatableProperty.PropertyName}"
-					+ $"({string.Join(", ", existingMethod.Dependencies.Select(service => $"service{service}"))})";
-
-				if (existingMethod.ReturnType == Consts.ValidationMessageName)
-				{
-					singleMessageValidatorInvocationValidatorsLines.Add(
-						(customValidatorInvocation, "Custom property validator")
-					);
-				}
-				else
-				{
-					enumerableValidatorInvocationValidatorsLines.Add(customValidatorInvocation);
-				}
-			}
-			else
-			{
-				customValidationMethodsForInterface
-					.AppendLine(
-						$"/// <summary>Custom validation method for property '{validatableProperty.PropertyName}'.</summary>"
-					)
-					.Append($"IEnumerable<ValidationMessage> Validate{validatableProperty.PropertyName}(");
-
-				// Add INVOCATION
-				enumerableValidatorInvocationValidatorsLines.Add(
-					$"customValidator.Validate{validatableProperty.PropertyName}()"
-				);
-			}
-
-			customValidationMethodsForInterface.AppendLine(");");
-		}
-
-		// Generate INVOCATION `xxRule.IsValid()`
-		var validationCalls = new StringBuilder();
-		validationCalls.Append(
-			@$"	// Validate {validatableProperty.PropertyName}
-			context.SetProperty(""{validatableProperty.PropertyName}"");
-			result.AddPropertyResult(
-				{Consts.PropertyValidationResultGlobalRef}.Create(
-					""{validatableProperty.PropertyName}"""
-		);
-
-		if (enumerableValidatorInvocationValidatorsLines.Count != 0)
-		{
-			validationCalls.Append(
-				@$",
-					{CreateConcatenation(enumerableValidatorInvocationValidatorsLines)}"
-			);
-		}
-
-		validationCalls.AppendLine(
-			@$"
-				)
-				{CreateAddChain(singleMessageValidatorInvocationValidatorsLines)}
-			);"
-		);
-
-		ruleValidateCalls.Add(validationCalls.ToString());
+		// return (validatorsCallBuilder.Build(), rulesBuilder.Build(), null!);
 	}
 
 	private static void AddAutoValidators(
 		List<AttributeProperties> attributes,
-		ValidatablePropertyProperties validatableProperty,
-		ValigatorConfiguration config
+		PropertyProperties validatableProperty,
+		ValigatorConfiguration config,
+		bool? useAutoValidators
 	)
 	{
-		// AUTO REQUIRED - Add Required validator if the property is not nullable
+		// Auto validators are disabled for this object
+		if (useAutoValidators == false)
+		{
+			return;
+		}
+
+		// Required - Add Required validator if the property is not nullable
 		if (
-			config.AutoRequired
+			(useAutoValidators ?? config.AutoRequired)
 			&& !validatableProperty.Nullable
 			&& attributes.All(x => x.QualifiedName != Consts.RequiredAttributeQualifiedName)
 		)
@@ -602,7 +534,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 		// InEnum - Add InEnum validator for Enum properties
 		if (
-			config.AutoInEnum
+			(useAutoValidators ?? config.AutoInEnum)
 			&& validatableProperty.PropertyTypeKind == TypeKind.Enum
 			&& attributes.All(x => x.QualifiedName != Consts.InEnumAttributeQualifiedName)
 		)

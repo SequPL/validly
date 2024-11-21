@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Common;
@@ -19,6 +20,7 @@ public class NotEmptyAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(string? value)
 	{
 		if (string.IsNullOrWhiteSpace(value))
@@ -34,13 +36,35 @@ public class NotEmptyAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid<T>(ICollection<T>? value)
 	{
-		if (value is ICollection { Count: 0 } || (value is IEnumerable enumerable && !enumerable.Cast<object>().Any()))
+		if (value is { Count: 0 })
 		{
 			return NotEmptyMessage;
 		}
 
 		return null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
+	{
+		if (value is null)
+		{
+			return null;
+		}
+
+		if (value is ICollection<T> collection)
+		{
+			return IsValid(collection);
+		}
+
+		return !value.Any() ? NotEmptyMessage : null;
 	}
 }

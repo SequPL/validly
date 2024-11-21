@@ -24,7 +24,7 @@ public class InEnumTests
 		var val = new InEnumTestObject { EnumValue = SomeEnum.One };
 
 		using var result = val.Validate();
-		Assert.True(result.Success);
+		Assert.True(result.IsSuccess);
 	}
 
 	[Fact]
@@ -33,7 +33,7 @@ public class InEnumTests
 		var val = new InEnumTestObject { EnumValue = default };
 
 		using var result = val.Validate();
-		Assert.False(result.Success);
+		Assert.False(result.IsSuccess);
 	}
 
 	[Fact]
@@ -42,6 +42,6 @@ public class InEnumTests
 		var val = new InEnumTestObject { EnumValue = (SomeEnum)99 };
 
 		using var result = val.Validate();
-		Assert.False(result.Success);
+		Assert.False(result.IsSuccess);
 	}
 }

@@ -19,31 +19,35 @@ internal static class SymbolMapper
 			}
 		}
 
+		var namedReturnType = methodSymbol.ReturnType as INamedTypeSymbol;
+
 		return new MethodProperties
 		{
 			MethodName = methodSymbol.Name,
 			ReturnType =
-				qualifiedReturnTypeName && methodSymbol.ReturnType is INamedTypeSymbol namedReturnType
+				qualifiedReturnTypeName && namedReturnType is not null
 					? namedReturnType.GetQualifiedName()
 					: methodSymbol.ReturnType.Name,
-			ReturnTypeGenericArgument = methodSymbol.ReturnType is INamedTypeSymbol namedReturnTypeGeneric
-				? namedReturnTypeGeneric.TypeArguments.FirstOrDefault()?.Name
-				: null,
+			ReturnTypeType = namedReturnType is not null ? ToReturnTypeType(namedReturnType) : ReturnTypeType.Void,
+			ReturnTypeGenericArgument = namedReturnType?.TypeArguments.FirstOrDefault()?.Name,
 			Dependencies = new EquatableArray<string>(dependencies),
-			IsAsync = methodSymbol.ReturnType.Name is "Task" or "ValueTask" or "AsyncEnumerable",
-			Awaitable = methodSymbol.ReturnType.Name is "Task" or "ValueTask",
+			// IsAsync = methodSymbol.ReturnType.Name is "Task" or "ValueTask" or "IAsyncEnumerable",
+			// Awaitable = methodSymbol.ReturnType.Name is "Task" or "ValueTask",
 			RequiresInjection = requiresInjection,
 		};
 	}
 
-	public static ValidatablePropertyProperties MapValidatableProperty(
-		IPropertySymbol propertySymbol,
-		SemanticModel semanticModel
-	)
+	public static PropertyProperties MapValidatableProperty(IPropertySymbol propertySymbol, SemanticModel semanticModel)
 	{
-		return new ValidatablePropertyProperties
+		var attributes = propertySymbol.GetAttributes().Select(MapAttribute).ToArray();
+
+		return new PropertyProperties
 		{
 			PropertyName = propertySymbol.Name,
+			DisplayName =
+				attributes
+					.FirstOrDefault(attr => attr.QualifiedName == Consts.DisplayNameAttributeQualifiedName)
+					?.Arguments.FirstOrDefault() ?? propertySymbol.Name,
 			PropertyType = propertySymbol.Type.Name,
 			PropertyTypeKind = propertySymbol.Type.TypeKind,
 			Nullable =
@@ -55,9 +59,7 @@ internal static class SymbolMapper
 			PropertyIsOfValidatableType = propertySymbol
 				.Type.GetAttributes()
 				.Any(attr => attr.AttributeClass?.GetQualifiedName() == Consts.ValidatableAttributeQualifiedName),
-			ValidationAttributes = new EquatableArray<AttributeProperties>(
-				propertySymbol.GetAttributes().Select(MapAttribute).ToArray()
-			),
+			ValidationAttributes = new EquatableArray<AttributeProperties>(attributes),
 		};
 	}
 
@@ -93,5 +95,41 @@ internal static class SymbolMapper
 			},
 			_ => constant.Value?.ToString() ?? "null",
 		};
+	}
+
+	public static ReturnTypeType ToReturnTypeType(INamedTypeSymbol returnType)
+	{
+		ReturnTypeType result = ReturnTypeType.Void;
+
+		switch (returnType.Name)
+		{
+			case "Task":
+				result = ReturnTypeType.Task | ReturnTypeType.Async | ReturnTypeType.Awaitable;
+				break;
+			case "ValueTask":
+				result = ReturnTypeType.ValueTask | ReturnTypeType.Async | ReturnTypeType.Awaitable;
+				break;
+			case "IAsyncEnumerable":
+				result = ReturnTypeType.AsyncEnumerable | ReturnTypeType.Awaitable;
+				break;
+			case "IEnumerable":
+				result = ReturnTypeType.Enumerable;
+				break;
+		}
+
+		switch (returnType.TypeArguments.FirstOrDefault()?.Name)
+		{
+			case "ValidationResult":
+				result |= ReturnTypeType.ValidationResult;
+				break;
+			case "ValidationMessage":
+				result |= ReturnTypeType.ValidationMessage;
+				break;
+			case "Validation":
+				result |= ReturnTypeType.Validation;
+				break;
+		}
+
+		return result;
 	}
 }

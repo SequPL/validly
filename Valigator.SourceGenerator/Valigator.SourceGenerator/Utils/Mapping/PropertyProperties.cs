@@ -2,9 +2,11 @@ using Microsoft.CodeAnalysis;
 
 namespace Valigator.SourceGenerator.Utils.Mapping;
 
-internal record ValidatablePropertyProperties
+internal record PropertyProperties
 {
 	public required string PropertyName { get; init; }
+
+	public required string DisplayName { get; init; }
 
 	public required string PropertyType { get; init; }
 

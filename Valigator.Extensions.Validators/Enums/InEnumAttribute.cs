@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Enums;
@@ -18,14 +19,10 @@ public class InEnumAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid<TEnum>(TEnum value)
 		where TEnum : struct, Enum
 	{
-		if (!Enum.IsDefined(typeof(TEnum), value))
-		{
-			return ValidationMessage;
-		}
-
-		return null;
+		return !Enum.IsDefined(typeof(TEnum), value) ? ValidationMessage : null;
 	}
 }

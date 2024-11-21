@@ -37,8 +37,9 @@ internal static class ConfigOptionsProvider
 
 		return new ValigatorConfiguration
 		{
-			AutoRequired = ToBool(raw.AutoRequired),
-			AutoInEnum = ToBool(raw.AutoInEnum),
+			AutoRequired = ToBool(raw.AutoRequired ?? "enabled"),
+			AutoInEnum = ToBool(raw.AutoInEnum ?? "enabled"),
+			ExitEarly = ToBool(raw.ExitEarly),
 		};
 	}
 
@@ -83,4 +84,5 @@ public class RawValigatorConfiguration
 {
 	public string? AutoRequired { get; set; }
 	public string? AutoInEnum { get; set; }
+	public string? ExitEarly { get; set; }
 }

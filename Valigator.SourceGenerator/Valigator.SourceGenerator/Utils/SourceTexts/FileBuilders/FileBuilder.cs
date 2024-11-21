@@ -1,14 +1,14 @@
 using System.Text;
 
-namespace Valigator.SourceGenerator.Utils.FileBuilders;
+namespace Valigator.SourceGenerator.Utils.SourceTexts.FileBuilders;
 
 public class FileBuilder
 {
-	private readonly List<FilePart> _parts = new() { new FilePart() };
+	private readonly List<SourceTextSectionBuilder> _parts = new() { new SourceTextSectionBuilder() };
 
-	private FilePart CurrentPart => _parts[_parts.Count - 1];
+	private SourceTextSectionBuilder CurrentPart => _parts[_parts.Count - 1];
 
-	public List<FilePart> Parts => _parts;
+	public List<SourceTextSectionBuilder> Parts => _parts;
 
 	public FileBuilder Append(string text)
 	{
@@ -34,15 +34,15 @@ public class FileBuilder
 		return this;
 	}
 
-	public FileBuilder AddPart(FilePart? filePart = null)
+	public FileBuilder AddPart(SourceTextSectionBuilder? filePart = null)
 	{
-		_parts.Add(filePart ?? new FilePart());
+		_parts.Add(filePart ?? new SourceTextSectionBuilder());
 		return this;
 	}
 
 	public FileBuilder Concat(FileBuilder builder)
 	{
-		foreach (FilePart part in builder._parts)
+		foreach (SourceTextSectionBuilder part in builder._parts)
 		{
 			_parts.Add(part);
 		}
@@ -56,7 +56,7 @@ public class FileBuilder
 	{
 		var builder = new StringBuilder();
 
-		foreach (FilePart part in _parts)
+		foreach (SourceTextSectionBuilder part in _parts)
 		{
 			for (int i = 0; i < part.Lines.Count - 1; i++)
 			{

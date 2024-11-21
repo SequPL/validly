@@ -46,19 +46,49 @@ internal static class ValidatableObjectIncrementalValueProvider
 				.Any(attr => attr.AttributeClass?.GetQualifiedName() == Consts.ValidatableAttributeQualifiedName)
 			?? false;
 
+		var validatableAttribute = typeSymbol
+			.GetAttributes()
+			.First(attr => attr.AttributeClass?.GetQualifiedName() == Consts.ValidatableAttributeQualifiedName);
+
 		return new ObjectProperties
 		{
+			UseAutoValidators = GetUseAutoValidatorsValue(validatableAttribute),
 			Usings = new EquatableArray<string>(usings.Select(usingSyntax => usingSyntax.ToString()).ToArray()),
 			ClassOrRecordKeyword = typeSymbol.IsRecord ? "record" : "class",
 			Accessibility = typeSymbol.DeclaredAccessibility,
 			Name = typeSymbol.Name,
 			Namespace = typeSymbol.ContainingNamespace.ToString(),
-			Properties = new EquatableArray<ValidatablePropertyProperties>(properties),
+			Properties = new EquatableArray<PropertyProperties>(properties),
 			Methods = new EquatableArray<MethodProperties>(methods),
 			InheritsValidatableObject = inheritsValidatableObject,
 			BeforeValidateMethod = methods.FirstOrDefault(m => m.MethodName == Consts.BeforeValidateMethodName),
 			AfterValidateMethod = methods.FirstOrDefault(m => m.MethodName == Consts.AfterValidateMethodName),
 		};
+	}
+
+	private static bool? GetUseAutoValidatorsValue(AttributeData validatableAttribute)
+	{
+		if (
+			validatableAttribute
+				.NamedArguments.FirstOrDefault(x => x.Key == nameof(ValidatableAttribute.UseAutoValidators))
+				.Value.Value
+			is true
+		)
+		{
+			return true;
+		}
+
+		if (
+			validatableAttribute
+				.NamedArguments.FirstOrDefault(x => x.Key == nameof(ValidatableAttribute.NoAutoValidators))
+				.Value.Value
+			is true
+		)
+		{
+			return false;
+		}
+
+		return null;
 	}
 
 	private static UsingDirectiveSyntax[] GetUsings(TypeDeclarationSyntax targetNode)

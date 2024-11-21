@@ -7,13 +7,16 @@ internal static class Consts
 {
 	public const string CustomValidationAttribute =
 		$"Valigator.Validators.{nameof(Valigator.Validators.CustomValidationAttribute)}";
+
 	public const string RequiredAttributeQualifiedName = "Valigator.Extensions.Validators.Common.RequiredAttribute";
 	public const string InEnumAttributeQualifiedName = "Valigator.Extensions.Validators.Enums.InEnumAttribute";
 	public const string ValidatableAttributeQualifiedName = $"Valigator.{nameof(ValidatableAttribute)}";
 	public const string ValidatorAttributeQualifiedName = $"Valigator.Validators.{nameof(ValidatorAttribute)}";
+	public const string DisplayNameAttributeQualifiedName = "System.ComponentModel.DisplayNameAttribute";
 
 	public const string InternalValidationInvokerGlobalRef =
 		$"global::Valigator.Validators.{nameof(IInternalValidationInvoker)}";
+
 	public const string IValidatableGlobalRef = $"global::Valigator.{nameof(IValidatable)}";
 	public const string ValidationResultGlobalRef = $"global::Valigator.{nameof(ValidationResult)}";
 	public const string PropertyValidationResultGlobalRef = $"global::Valigator.{nameof(PropertyValidationResult)}";

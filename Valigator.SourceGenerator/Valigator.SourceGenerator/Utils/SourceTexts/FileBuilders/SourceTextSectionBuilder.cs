@@ -1,8 +1,8 @@
 using System.Text;
 
-namespace Valigator.SourceGenerator.Utils.FileBuilders;
+namespace Valigator.SourceGenerator.Utils.SourceTexts.FileBuilders;
 
-public class FilePart
+public class SourceTextSectionBuilder
 {
 	private readonly List<StringBuilder> _lines = new() { new StringBuilder() };
 
@@ -10,35 +10,35 @@ public class FilePart
 
 	public List<StringBuilder> Lines => _lines;
 
-	public FilePart Append(string text)
+	public SourceTextSectionBuilder Append(string text)
 	{
 		CurrentLine.Append(text);
 		return this;
 	}
 
-	public FilePart AppendIf(string text, bool condition)
+	public SourceTextSectionBuilder AppendIf(string text, bool condition)
 	{
 		return condition ? Append(text) : this;
 	}
 
-	public FilePart AppendLine(string text)
+	public SourceTextSectionBuilder AppendLine(string text)
 	{
 		CurrentLine.Append(text);
 		return AppendLine();
 	}
 
-	public FilePart AppendLineIf(string text, bool condition)
+	public SourceTextSectionBuilder AppendLineIf(string text, bool condition)
 	{
 		return condition ? AppendLine(text) : this;
 	}
 
-	public FilePart AppendLine()
+	public SourceTextSectionBuilder AppendLine()
 	{
 		_lines.Add(new StringBuilder());
 		return this;
 	}
 
-	public FilePart Indent(int count = 1)
+	public SourceTextSectionBuilder Indent(int count = 1)
 	{
 		foreach (StringBuilder line in _lines)
 		{

@@ -44,7 +44,7 @@ public static class ValidationResultHelper
 	/// </summary>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public static async Task<ValidationResult?> ToValidationResult(IAsyncEnumerable<ValidationMessage> errors)
+	public static async ValueTask<ValidationResult?> ToValidationResult(IAsyncEnumerable<ValidationMessage> errors)
 	{
 		var errorList = new List<ValidationMessage>(1);
 
@@ -127,7 +127,7 @@ public static class ValidationResultHelper
 	/// <param name="result"></param>
 	/// <param name="replaceOrAddResult"></param>
 	/// <returns></returns>
-	public static async Task<ValidationResult> ReplaceOrAddMessages(
+	public static async ValueTask<ValidationResult> ReplaceOrAddMessages(
 		ExtendableValidationResult result,
 		IAsyncEnumerable<ValidationMessage> replaceOrAddResult
 	)

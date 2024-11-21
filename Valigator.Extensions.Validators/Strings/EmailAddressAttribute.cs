@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Strings;
@@ -12,14 +13,17 @@ namespace Valigator.Extensions.Validators.Strings;
 [AttributeUsage(AttributeTargets.Property)]
 public class EmailAddressAttribute : Attribute
 {
-	private static readonly ValidationMessage ValidationMessage =
-		new("Must be a valid email address", "Valigator.Validations.EmailAddress");
+	private static readonly ValidationMessage ValidationMessage = ValidationMessagesHelper.CreateMessage(
+		nameof(EmailAddressAttribute),
+		"Must be a valid email address."
+	);
 
 	/// <summary>
 	/// Validate the value
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(string? value)
 	{
 		if (!Valid(value))
@@ -30,6 +34,7 @@ public class EmailAddressAttribute : Attribute
 		return null;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static bool Valid(string? value)
 	{
 		if (value == null)

@@ -9,7 +9,9 @@ public class ExtendableValidationResult : ValidationResult
 	/// Represents the result of a validation. Variant with methods for adding global messages and properties results.
 	/// </summary>
 	public ExtendableValidationResult(int propertiesCount)
-		: base(new List<ValidationMessage>(), new List<PropertyValidationResult>(propertiesCount)) { }
+		: base(new List<ValidationMessage>(), new List<PropertyValidationResult>(propertiesCount))
+	{
+	}
 
 	/// <summary>
 	/// Add a global message to the validation result
@@ -33,6 +35,7 @@ public class ExtendableValidationResult : ValidationResult
 		{
 			GlobalMessages.Add(message);
 		}
+
 		return this;
 	}
 
@@ -41,12 +44,13 @@ public class ExtendableValidationResult : ValidationResult
 	/// </summary>
 	/// <param name="messages"></param>
 	/// <returns></returns>
-	public async Task<ExtendableValidationResult> AddGlobalMessages(IAsyncEnumerable<ValidationMessage> messages)
+	public async ValueTask<ExtendableValidationResult> AddGlobalMessages(IAsyncEnumerable<ValidationMessage> messages)
 	{
 		await foreach (ValidationMessage message in messages)
 		{
 			GlobalMessages.Add(message);
 		}
+
 		return this;
 	}
 

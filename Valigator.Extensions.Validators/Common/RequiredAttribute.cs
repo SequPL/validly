@@ -1,11 +1,10 @@
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Common;
 
 /// <summary>
-/// Validator that ensures a value is present, enforcing it as required.
-/// If the value is a string, it can optionally allow empty strings based on the configuration of <paramref name="allowEmptyStrings"/>.
-/// Typically used to validate that a property has a non-null or non-empty value.
+/// Validator that ensures a value is present, enforcing it as required
 /// </summary>
 [Validator]
 [ValidatorDescription("is required")]
@@ -33,6 +32,7 @@ public class RequiredAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(string? value)
 	{
 		if (value is null || (string.IsNullOrEmpty(value) && !_allowEmptyStrings))
@@ -48,13 +48,9 @@ public class RequiredAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid<T>(T? value)
 	{
-		if (value is null)
-		{
-			return RequiredMessage;
-		}
-
-		return null;
+		return value is null ? RequiredMessage : null;
 	}
 }

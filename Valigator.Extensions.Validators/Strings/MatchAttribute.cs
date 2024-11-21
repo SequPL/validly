@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Valigator.Validators;
 
@@ -13,8 +14,11 @@ namespace Valigator.Extensions.Validators.Strings;
 public class MatchAttribute : Attribute
 {
 	private readonly Regex _regex;
-	private static readonly ValidationMessage ValidationMessage =
-		new("Must match the required format.", "Valigator.Validations.Match");
+
+	private static readonly ValidationMessage ValidationMessage = ValidationMessagesHelper.CreateMessage(
+		nameof(MatchAttribute),
+		"Must match the required format."
+	);
 
 	/// <param name="pattern">The regular expression pattern to match.</param>
 	public MatchAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string pattern)
@@ -27,6 +31,7 @@ public class MatchAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(string? value)
 	{
 		if (value is not null && !_regex.IsMatch(value))

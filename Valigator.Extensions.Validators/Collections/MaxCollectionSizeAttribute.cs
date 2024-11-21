@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Valigator.Validators;
 
 namespace Valigator.Extensions.Validators.Collections;
@@ -11,12 +12,18 @@ namespace Valigator.Extensions.Validators.Collections;
 public class MaxCollectionSizeAttribute : Attribute
 {
 	private readonly int _maxSize;
+	private readonly ValidationMessage _message;
 
 	/// <param name="maxSize">The maximum allowed number of items.</param>
 	[ValidatorDescription("must contain no more than {0} items")]
 	public MaxCollectionSizeAttribute(int maxSize)
 	{
 		_maxSize = maxSize;
+		_message = new ValidationMessage(
+			"Must contain no more than {0} items.",
+			"Valigator.Validations.MaxCollectionSize",
+			_maxSize
+		);
 	}
 
 	/// <summary>
@@ -24,24 +31,35 @@ public class MaxCollectionSizeAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid<T>(ICollection<T>? value)
 	{
-		if (
-			(value is ICollection collection && collection.Count > _maxSize)
-			|| (value is IEnumerable enumerable && enumerable.Cast<object>().Count() > _maxSize)
-		)
+		if (value != null && value.Count > _maxSize)
 		{
-			return new ValidationMessage(
-				"Must contain no more than {0} items.",
-				"Valigator.Validations.MaxCollectionSize",
-				_maxSize
-			);
+			return _message;
 		}
 
 		return null;
 	}
-}
 
-// #pragma warning disable CS1591
-// public partial class MaxCollectionSizeAttribute;
-// #pragma warning restore CS1591
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
+	{
+		if (value is null)
+		{
+			return null;
+		}
+
+		if (value is ICollection<T> collection)
+		{
+			return IsValid(collection);
+		}
+
+		return value.Count() > _maxSize ? _message : null;
+	}
+}
