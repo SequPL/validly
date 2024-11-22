@@ -175,7 +175,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		PropertyProperties property
 	)
 	{
-		var attributes = property.ValidationAttributes.GetArray()?.ToList() ?? new List<AttributeProperties>();
+		var attributes = property.Attributes.GetArray()?.ToList() ?? new List<AttributeProperties>();
 
 		// Add automatic validators
 		AddAutoValidators(attributes, property, properties.Config, properties.Object.UseAutoValidators);
@@ -489,6 +489,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			(useAutoValidators ?? config.AutoRequired)
 			&& !validatableProperty.Nullable
 			&& attributes.All(x => x.QualifiedName != Consts.RequiredAttributeQualifiedName)
+			&& validatableProperty.PropertyTypeKind is not TypeKind.Enum and not TypeKind.Struct
 		)
 		{
 			attributes.Add(AttributeProperties.Required);

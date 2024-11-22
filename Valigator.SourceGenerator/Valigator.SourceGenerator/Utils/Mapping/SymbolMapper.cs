@@ -39,15 +39,17 @@ internal static class SymbolMapper
 
 	public static PropertyProperties MapValidatableProperty(IPropertySymbol propertySymbol, SemanticModel semanticModel)
 	{
-		var attributes = propertySymbol.GetAttributes().Select(MapAttribute).ToArray();
+		var attrs = propertySymbol.GetAttributes();
+		var attributes = attrs.Select(MapAttribute).ToArray();
 
 		return new PropertyProperties
 		{
 			PropertyName = propertySymbol.Name,
 			DisplayName =
-				attributes
-					.FirstOrDefault(attr => attr.QualifiedName == Consts.DisplayNameAttributeQualifiedName)
-					?.Arguments.FirstOrDefault() ?? propertySymbol.Name,
+				attrs
+					.FirstOrDefault(attr => attr.AttributeClass?.Name == "DisplayNameAttribute")
+					?.ConstructorArguments[0]
+					.Value?.ToString() ?? propertySymbol.Name,
 			PropertyType = propertySymbol.Type.Name,
 			PropertyTypeKind = propertySymbol.Type.TypeKind,
 			Nullable =
@@ -59,7 +61,7 @@ internal static class SymbolMapper
 			PropertyIsOfValidatableType = propertySymbol
 				.Type.GetAttributes()
 				.Any(attr => attr.AttributeClass?.GetQualifiedName() == Consts.ValidatableAttributeQualifiedName),
-			ValidationAttributes = new EquatableArray<AttributeProperties>(attributes),
+			Attributes = new EquatableArray<AttributeProperties>(attributes),
 		};
 	}
 
@@ -68,6 +70,7 @@ internal static class SymbolMapper
 		return new AttributeProperties
 		{
 			QualifiedName = arg.AttributeClass?.GetQualifiedName() ?? string.Empty,
+			// TODO: Keep this simple. Move the mapping logic to Generate method; keep this as simple and fast as possible.
 			Arguments = new EquatableArray<string>(
 				arg.ConstructorArguments.Select(ValueToCode)
 					.Concat(

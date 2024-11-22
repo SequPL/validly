@@ -22,5 +22,5 @@ internal record PropertyProperties
 
 	public required bool PropertyIsOfValidatableType { get; init; }
 
-	public required EquatableArray<AttributeProperties> ValidationAttributes { get; init; }
+	public required EquatableArray<AttributeProperties> Attributes { get; init; }
 }

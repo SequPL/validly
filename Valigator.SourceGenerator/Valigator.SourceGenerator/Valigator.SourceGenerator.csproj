@@ -13,7 +13,7 @@
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 
         <PackageId>Valigator.SourceGenerator</PackageId>
-		<Version>1.0.0-alpha</Version>
+		<Version>1.0.0-rc.1</Version>
 		<Description>Source Generator for Valigator validation library</Description>
     </PropertyGroup>
 

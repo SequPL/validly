@@ -79,11 +79,16 @@ internal class PropertiesValidationInvocationBuilder
 				"""
 			: string.Empty;
 
+		var propertyNameAndDisplayNameArgs =
+			properties.PropertyName == properties.DisplayName
+				? $"\"{properties.PropertyName}\""
+				: $"\"{properties.PropertyName}\", \"{properties.DisplayName}\"";
+
 		_invocations.Add(
 			$$"""
 			// Validate {{properties.PropertyName}} property
-			context.SetProperty("{{properties.PropertyName}}");
-			propertyResult = {{Consts.PropertyValidationResultGlobalRef}}.Create("{{properties.PropertyName}}");
+			context.SetProperty({{propertyNameAndDisplayNameArgs}});
+			propertyResult = {{Consts.PropertyValidationResultGlobalRef}}.Create({{propertyNameAndDisplayNameArgs}});
 			{{string.Join(
 				Environment.NewLine,
 				propertyCalls.ValidationResults.Select(static call => $$"""

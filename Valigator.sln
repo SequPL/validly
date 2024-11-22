@@ -21,7 +21,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Valigator.Tests", "Valigator.Tests\Valigator.Tests.csproj", "{00FD8772-A4A1-4FB8-A7E5-9C76FEBF12E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{056F16FC-A505-4849-8F47-D8583A5A6A13}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{E8AB26F1-6562-4531-B516-2457130E6B5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Benchmarks\Benchmarks.csproj", "{056F16FC-A505-4849-8F47-D8583A5A6A13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks.Dev", "Benchmarks\Benchmarks.Dev\Benchmarks.Dev.csproj", "{05C977ED-F6AA-46AE-B0DF-538139013694}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{6A7A9B79-68AD-4D8B-AB63-CD9A2CC7FD24}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDDValidations", "Examples\DDDValidations\DDDValidations.csproj", "{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,5 +57,18 @@ Global
 		{056F16FC-A505-4849-8F47-D8583A5A6A13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{056F16FC-A505-4849-8F47-D8583A5A6A13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{056F16FC-A505-4849-8F47-D8583A5A6A13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05C977ED-F6AA-46AE-B0DF-538139013694}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05C977ED-F6AA-46AE-B0DF-538139013694}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05C977ED-F6AA-46AE-B0DF-538139013694}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05C977ED-F6AA-46AE-B0DF-538139013694}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{056F16FC-A505-4849-8F47-D8583A5A6A13} = {E8AB26F1-6562-4531-B516-2457130E6B5B}
+		{05C977ED-F6AA-46AE-B0DF-538139013694} = {E8AB26F1-6562-4531-B516-2457130E6B5B}
+		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71} = {6A7A9B79-68AD-4D8B-AB63-CD9A2CC7FD24}
 	EndGlobalSection
 EndGlobal

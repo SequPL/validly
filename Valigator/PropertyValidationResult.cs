@@ -15,7 +15,8 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 
 	private static readonly ArrayPool<ValidationMessage> ValidationMessagePool = ArrayPool<ValidationMessage>.Shared;
 
-	private string _propertyName = null!;
+	private string _propertyPath = null!;
+	private string _propertyDisplayName = null!;
 	private IReadOnlyList<ValidationMessage>? _messages;
 	private bool _disposed;
 
@@ -23,9 +24,14 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	private int _messagesArrayItemCount;
 
 	/// <summary>
-	/// Name of the validated property
+	/// Path of the validated property from the root object
 	/// </summary>
-	public string PropertyName => _propertyName;
+	public string PropertyPath => _propertyPath;
+
+	/// <summary>
+	/// DisplayName of the validated property
+	/// </summary>
+	public string PropertyDisplayName => _propertyDisplayName;
 
 	/// <summary>
 	/// Error messages generated during validation
@@ -52,10 +58,33 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 		return result;
 	}
 
-	private void Reset(string propertyName)
+	/// <summary>
+	/// Creates new instance of <see cref="PropertyValidationResult"/>
+	/// </summary>
+	/// <param name="propertyName"></param>
+	/// <param name="propertyDisplayName"></param>
+	/// <returns></returns>
+	public static PropertyValidationResult Create(string propertyName, string propertyDisplayName)
+	{
+		var result = Pool.Get();
+		result.Reset(propertyName, propertyDisplayName);
+
+		return result;
+	}
+
+	private void Reset(string propertyPath)
 	{
 		_disposed = false;
-		_propertyName = propertyName;
+		_propertyPath = propertyPath;
+		_propertyDisplayName = propertyPath;
+		_messagesArray = ValidationMessagePool.Rent(ValigatorOptions.PropertyMessagesPoolSize);
+	}
+
+	private void Reset(string propertyPath, string propertyDisplayName)
+	{
+		_disposed = false;
+		_propertyPath = propertyPath;
+		_propertyDisplayName = propertyDisplayName;
 		_messagesArray = ValidationMessagePool.Rent(ValigatorOptions.PropertyMessagesPoolSize);
 	}
 
@@ -130,14 +159,15 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 		string parentPropertyName
 	)
 	{
-		_propertyName = $"{parentPropertyName}.{_propertyName}";
+		_propertyPath = $"{parentPropertyName}.{_propertyPath}";
 		return this;
 	}
 
 	/// <inheritdoc />
 	bool IResettable.TryReset()
 	{
-		_propertyName = null!;
+		_propertyPath = null!;
+		_propertyDisplayName = null!;
 		_messages = null;
 		_messagesArrayItemCount = 0;
 		return true;

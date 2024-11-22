@@ -75,7 +75,7 @@ public class BaseTests
 		// Asset SINGLE error message on Name property
 		var nameResult = result.Properties.SingleOrDefault(x => !x.IsSuccess);
 		Assert.NotNull(nameResult);
-		Assert.Equal(nameof(CreateUserRequest.Name), nameResult.PropertyName);
+		Assert.Equal(nameof(CreateUserRequest.Name), nameResult.PropertyPath);
 		Assert.Single(nameResult.Messages);
 	}
 
@@ -97,7 +97,7 @@ public class BaseTests
 		// Asset SINGLE error message on Name property
 		var ageResult = result.Properties.SingleOrDefault(x => !x.IsSuccess);
 		Assert.NotNull(ageResult);
-		Assert.Equal(nameof(CreateUserRequest.Age), ageResult.PropertyName);
+		Assert.Equal(nameof(CreateUserRequest.Age), ageResult.PropertyPath);
 		Assert.Single(ageResult.Messages);
 	}
 
@@ -119,7 +119,7 @@ public class BaseTests
 		// Asset SINGLE error message on Name property
 		var emailResult = result.Properties.SingleOrDefault(x => !x.IsSuccess);
 		Assert.NotNull(emailResult);
-		Assert.Equal(nameof(CreateUserRequest.Email), emailResult.PropertyName);
+		Assert.Equal(nameof(CreateUserRequest.Email), emailResult.PropertyPath);
 		Assert.Single(emailResult.Messages);
 	}
 }
