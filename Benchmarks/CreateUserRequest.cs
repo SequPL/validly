@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Validators;
 using Valigator;
 using Valigator.Extensions.Validators.Common;
 using Valigator.Extensions.Validators.Numbers;
@@ -5,7 +7,7 @@ using Valigator.Extensions.Validators.Strings;
 
 namespace Benchmarks;
 
-[Validatable]
+[Validatable(NoAutoValidators = true)]
 public partial class CreateUserRequest
 {
 	[Required]
@@ -43,5 +45,18 @@ public partial class CreateUserRequest
 	public override string ToString()
 	{
 		return NumberOfInvalidItems;
+	}
+}
+
+public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
+{
+	public CreateUserRequestValidator()
+	{
+		RuleFor(x => x.Username).NotEmpty().Length(5, 20);
+		RuleFor(x => x.Password).NotEmpty().MinimumLength(12);
+		RuleFor(x => x.Email).NotEmpty().EmailAddress();
+		RuleFor(x => x.Age).InclusiveBetween(18, 99);
+		RuleFor(x => x.FirstName).NotEmpty().When(x => x.LastName is not null);
+		RuleFor(x => x.LastName).NotEmpty().When(x => x.LastName is not null);
 	}
 }

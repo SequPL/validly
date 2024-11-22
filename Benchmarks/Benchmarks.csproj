@@ -10,6 +10,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.14.0"/>
+		<PackageReference Include="FluentValidation" Version="11.11.0" />
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
 		<PackageReference Include="RandomSkunk.RuntimePolyfill" Version="1.0.0">

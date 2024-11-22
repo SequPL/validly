@@ -14,15 +14,10 @@ internal static class SymbolMapper
 		string[] dependencies = new string[
 			skipFirstParameter ? Math.Max(methodSymbol.Parameters.Length - 1, 0) : methodSymbol.Parameters.Length
 		];
-		bool requiresInjection = false;
 
 		for (int i = skipFirstParameter ? 1 : 0; i < methodSymbol.Parameters.Length; i++)
 		{
-			if (Consts.ValidationContextName != (dependencies[i] = methodSymbol.Parameters[i].Type.Name))
-			{
-				// If there is some dependency other than ValidationContext, we need to inject it
-				requiresInjection = true;
-			}
+			dependencies[i] = methodSymbol.Parameters[i].Type.Name;
 		}
 
 		var namedReturnType = methodSymbol.ReturnType as INamedTypeSymbol;
@@ -39,7 +34,6 @@ internal static class SymbolMapper
 				: ReturnTypeType.Void,
 			ReturnTypeGenericArgument = namedReturnType?.TypeArguments.FirstOrDefault()?.Name,
 			Dependencies = new EquatableArray<string>(dependencies),
-			RequiresInjection = requiresInjection,
 		};
 	}
 

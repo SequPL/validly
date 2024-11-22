@@ -26,19 +26,4 @@ internal record MethodProperties
 	/// Dependencies of the method
 	/// </summary>
 	public required EquatableArray<string> Dependencies { get; init; }
-
-	/// <summary>
-	/// There are dependencies (other than ValidationContext) that need to be injected
-	/// </summary>
-	public required bool RequiresInjection { get; init; }
-
-	// /// <summary>
-	// /// Method requires async context
-	// /// </summary>
-	// public required bool IsAsync { get; init; }
-	//
-	// /// <summary>
-	// /// Method is awaitable
-	// /// </summary>
-	// public required bool Awaitable { get; init; }
 }

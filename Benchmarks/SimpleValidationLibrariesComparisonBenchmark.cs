@@ -6,11 +6,9 @@ namespace Benchmarks;
 
 [SimpleJob(RuntimeMoniker.Net472, baseline: true)]
 // [SimpleJob(RuntimeMoniker.NetCoreApp31)]
-// [SimpleJob(RuntimeMoniker.Net70, baseline: true)]
 [SimpleJob(RuntimeMoniker.Net80)]
-// [SimpleJob(RuntimeMoniker.Net90)]
-[MaxIterationCount(20)]
 // [SimpleJob(RuntimeMoniker.NativeAot80)]
+[MaxIterationCount(20)]
 // [RPlotExporter]
 [MemoryDiagnoser]
 public class SimpleValidationLibrariesComparisonBenchmark
@@ -63,43 +61,17 @@ public class SimpleValidationLibrariesComparisonBenchmark
 		return result.IsSuccess;
 	}
 
-	// [Benchmark]
-	// public bool ValigatorOneInvalid()
-	// {
-	// 	using var result = CreateUserRequestOneInvalid.Validate();
-	// 	return result.IsSuccess;
-	// }
-	//
-	// [Benchmark]
-	// public bool ValigatorAllInvalid()
-	// {
-	// 	using var result = CreateUserRequestAllInvalid.Validate();
-	// 	return result.IsSuccess;
-	// }
-
 	[Benchmark]
 	public bool DataAnnotation() =>
 		Validator.TryValidateObject(NumberOfInvalidValues, new ValidationContext(NumberOfInvalidValues), null);
 
 	// [Benchmark]
-	// public bool DataAnnotationOneInvalid() =>
-	// 	Validator.TryValidateObject(
-	// 		CreateUserRequestOneInvalid,
-	// 		new ValidationContext(CreateUserRequestOneInvalid),
-	// 		null
-	// 	);
-	//
-	// [Benchmark]
-	// public bool DataAnnotationAllInvalid() =>
-	// 	Validator.TryValidateObject(
-	// 		CreateUserRequestAllInvalid,
-	// 		new ValidationContext(CreateUserRequestAllInvalid),
-	// 		null
-	// 	);
-
-	// [Benchmark]
 	// public bool Validot() { }
 
-	// [Benchmark]
-	// public bool FluentValidation() => md5.ComputeHash(data);
+	[Benchmark]
+	public bool FluentValidation()
+	{
+		var validator = new CreateUserRequestValidator();
+		return validator.Validate(NumberOfInvalidValues).IsValid;
+	}
 }

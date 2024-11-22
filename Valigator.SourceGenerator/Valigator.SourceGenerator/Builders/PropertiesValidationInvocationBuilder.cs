@@ -63,31 +63,6 @@ internal class PropertiesValidationInvocationBuilder
 			itemNumber++;
 		}
 
-		// // Generate INVOCATION `xxRule.IsValid()`
-		// var validationCalls = new StringBuilder();
-		// validationCalls.Append(
-		// 	@$"	// Validate {properties.PropertyName}
-		// 	context.SetProperty(""{properties.PropertyName}"");
-		// 	result.AddPropertyResult(
-		// 		{Consts.PropertyValidationResultGlobalRef}.Create(
-		// 			""{properties.PropertyName}"""
-		// );
-		//
-		// if (enumerableValidatorInvocationValidatorsLines.Count != 0)
-		// {
-		// 	validationCalls.Append(
-		// 		@$",
-		// 			{CreateConcatenation(enumerableValidatorInvocationValidatorsLines)}"
-		// 	);
-		// }
-		//
-		// validationCalls.AppendLine(
-		// 	@$"
-		// 		)
-		// 		{CreateAddChain(singleMessageValidatorInvocationValidatorsLines)}
-		// 	);"
-		// );
-
 		if (!propertyCalls.Any())
 		{
 			return;

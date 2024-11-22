@@ -162,15 +162,8 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 		}
 
 		_messagesArray = null!;
-
-		// if (disposing)
-		// {
-		// 	_messagesEnumerable?.Dispose();
-		// }
-
 		_disposed = true;
 
-		// return true;
 		return !Pool.Return(this);
 	}
 

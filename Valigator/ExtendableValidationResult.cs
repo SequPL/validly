@@ -71,6 +71,11 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	/// <returns>Returns true when object is disposed (and not returned to the pool).</returns>
 	protected override bool Dispose(bool disposing)
 	{
+		if (_disposed)
+		{
+			return true;
+		}
+
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 		if (GlobalMessages is not null)
 		{
@@ -93,7 +98,6 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 
 		_disposed = true;
 
-		// return true;
 		return !Pool.Return(this);
 	}
 

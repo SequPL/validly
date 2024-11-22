@@ -35,11 +35,6 @@ public class ValidationResult : IDisposable
 	/// </summary>
 	protected internal int PropertiesResultCount;
 
-	// /// <summary>
-	// /// Backing field for <see cref="IsSuccess"/>
-	// /// </summary>
-	// protected bool? _isSuccess;
-
 	/// <summary>
 	/// When true, the object has been disposed and is inside the pool
 	/// </summary>
@@ -64,29 +59,20 @@ public class ValidationResult : IDisposable
 	{
 		get
 		{
-			// // Mem optimized: _success ??= Global.Count == 0 && PropertiesResult.All(p => p.IsSuccess);
-			// if (_isSuccess == null)
-			// {
+			// Mem optimized: _success ??= Global.Count == 0 && PropertiesResult.All(p => p.IsSuccess);
 			if (GlobalMessagesCount != 0)
 			{
 				return false;
-				// _isSuccess = false;
 			}
-			// else
-			// {
+
 			for (int index = 0; index < PropertiesResultCount; index++)
 			{
 				if (!PropertiesResult[index].IsSuccess)
 				{
 					return false;
-					// _isSuccess = false;
-					// break;
 				}
 			}
-			// }
-			// }
-			//
-			// return _isSuccess ??= true;
+
 			return true;
 		}
 	}
@@ -150,9 +136,6 @@ public class ValidationResult : IDisposable
 
 		if (disposing)
 		{
-			// // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-			// if (PropertiesResult != null)
-			// {
 			for (int index = 0; index < PropertiesResultCount; index++)
 			{
 				PropertyValidationResult propertyValidationResult = PropertiesResult[index];
@@ -160,8 +143,6 @@ public class ValidationResult : IDisposable
 			}
 
 			PropertiesResult = null!;
-			// }
-
 			GlobalMessages = null!;
 		}
 
