@@ -56,7 +56,7 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	{
 		_disposed = false;
 		_propertyName = propertyName;
-		_messagesArray = ValidationMessagePool.Rent(ValigatorConfig.PropertyMessagesPoolSize);
+		_messagesArray = ValidationMessagePool.Rent(ValigatorOptions.PropertyMessagesPoolSize);
 	}
 
 	private IReadOnlyList<ValidationMessage> GetMessages()

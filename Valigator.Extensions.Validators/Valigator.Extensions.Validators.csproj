@@ -8,14 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="RandomSkunk.RuntimePolyfill" Version="1.0.0">
+		<PackageReference Include="PolySharp" Version="1.15.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-<!--		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.8.0">-->
-<!--			<PrivateAssets>all</PrivateAssets>-->
-<!--			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
-<!--		</PackageReference>-->
 	</ItemGroup>
 
 	<ItemGroup>

@@ -50,7 +50,7 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	private void Reset(int propertiesCount)
 	{
 		_disposed = false;
-		GlobalMessages = GlobalMessagePool.Rent(ValigatorConfig.PropertyMessagesPoolSize);
+		GlobalMessages = GlobalMessagePool.Rent(ValigatorOptions.GlobalMessagesPoolSize);
 		PropertiesResult = PropertyValidationResultPool.Rent(propertiesCount);
 	}
 
