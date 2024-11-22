@@ -8,12 +8,12 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
 
-		<ValigatorConfiguration>
-			<AutoRequired>enabled</AutoRequired>
-			<AutoInEnum>enabled</AutoInEnum>
-		</ValigatorConfiguration>
+<!--		<ValigatorConfiguration>-->
+<!--			<AutoRequired>enabled</AutoRequired>-->
+<!--			<AutoInEnum>enabled</AutoInEnum>-->
+<!--		</ValigatorConfiguration>-->
     </PropertyGroup>
-	
+
 	<ItemGroup>
 		<CompilerVisibleProperty Include="ValigatorConfiguration" />
 	</ItemGroup>
