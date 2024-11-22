@@ -18,6 +18,11 @@
     </PropertyGroup>
 
 	<ItemGroup>
+		<None Include="assets/README.md" Pack="true" PackagePath=""/>
+		<None Include="assets/LICENSE" Pack="true" PackagePath=""/>
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Update=".\Properties\Valigator.SourceGenerator.props" Pack="true" PackagePath="build" />
 	</ItemGroup>

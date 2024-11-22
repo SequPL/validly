@@ -19,6 +19,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="assets/README.md" Pack="true" PackagePath=""/>
+		<None Include="assets/LICENSE" Pack="true" PackagePath=""/>
+	</ItemGroup>
+
+	<ItemGroup>
 		<Folder Include="Comparables\"/>
 	</ItemGroup>
 
