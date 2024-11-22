@@ -24,17 +24,27 @@ internal static class SymbolMapper
 
 		return new MethodProperties
 		{
-			MethodName = methodSymbol.Name,
+			MethodName = GetMethodName(methodSymbol),
 			ReturnType =
-				qualifiedReturnTypeName && namedReturnType is not null
-					? namedReturnType.GetQualifiedName()
-					: methodSymbol.ReturnType.Name,
+				methodSymbol.ReturnType.Name == "Void" ? "void"
+				: qualifiedReturnTypeName && namedReturnType is not null ? namedReturnType.GetQualifiedName()
+				: methodSymbol.ReturnType.Name,
 			ReturnTypeType = namedReturnType is not null
 				? ToReturnTypeType(namedReturnType, semanticModel)
 				: ReturnTypeType.Void,
 			ReturnTypeGenericArgument = namedReturnType?.TypeArguments.FirstOrDefault()?.Name,
 			Dependencies = new EquatableArray<string>(dependencies),
 		};
+	}
+
+	private static string GetMethodName(IMethodSymbol methodSymbol)
+	{
+		if (methodSymbol.MethodKind is MethodKind.ExplicitInterfaceImplementation)
+		{
+			return methodSymbol.Name.Substring(methodSymbol.Name.LastIndexOf('.') + 1);
+		}
+
+		return methodSymbol.Name;
 	}
 
 	public static PropertyProperties MapValidatableProperty(IPropertySymbol propertySymbol, SemanticModel semanticModel)
