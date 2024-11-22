@@ -1,27 +1,35 @@
 namespace Valigator.SourceGenerator.Utils.Mapping;
 
 [Flags]
-public enum ReturnTypeType
+public enum ReturnTypeType : short
 {
-	Void = 0,
+	None = 0,
 
-	Task = 1,
+	Nullable = 1,
 
-	ValueTask = 1 << 1,
+	Generic = 1 << 1,
 
-	Enumerable = 1 << 2,
+	Void = 1 << 2,
 
-	AsyncEnumerable = 1 << 3,
+	Task = 1 << 3,
 
-	ValidationResult = 1 << 4,
+	ValueTask = 1 << 4,
 
-	ValidationMessage = 1 << 5,
+	Enumerable = 1 << 5,
 
-	Validation = 1 << 6,
+	AsyncEnumerable = 1 << 6,
+
+	ValidationResult = 1 << 7,
+
+	ValidationMessage = 1 << 8,
+
+	Validation = 1 << 9,
 
 	TaskOrValueTask = Task | ValueTask,
 
 	Async = Task | ValueTask,
 
 	Awaitable = Async | AsyncEnumerable,
+
+	MayBeGeneric = Task | ValueTask | Enumerable | AsyncEnumerable
 }

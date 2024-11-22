@@ -24,10 +24,10 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
         <PackageReference Include="xunit" Version="2.5.3"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3"/>
-		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.8.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+<!--		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.8.0">-->
+<!--			<PrivateAssets>all</PrivateAssets>-->
+<!--			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
+<!--		</PackageReference>-->
     </ItemGroup>
 
     <ItemGroup>
@@ -37,9 +37,14 @@
     <ItemGroup>
       <ProjectReference Include="..\Valigator.Extensions.Validators\Valigator.Extensions.Validators.csproj" />
       <ProjectReference Include="..\Valigator\Valigator.csproj" />
-      <ProjectReference Include="..\Valigator.SourceGenerator\Valigator.SourceGenerator\Valigator.SourceGenerator.csproj"
-						OutputItemType="Analyzer"
-						ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\Valigator.SourceGenerator\Valigator.SourceGenerator\Valigator.SourceGenerator.csproj"
+						  OutputItemType="Analyzer"
+						  ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Validators\Numbers\" />
+      <Folder Include="Validators\Strings\" />
     </ItemGroup>
 
 </Project>

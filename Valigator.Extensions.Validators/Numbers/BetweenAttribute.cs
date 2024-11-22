@@ -58,12 +58,18 @@ public class BetweenAttribute : Attribute
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(decimal? value)
 	{
-		if (value is not null && (value < _min || value > _max))
-		{
-			return _message;
-		}
+		return value is not null && (value < _min || value > _max) ? _message : null;
+	}
 
-		return null;
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(decimal value)
+	{
+		return value < _min || value > _max ? _message : null;
 	}
 
 	/// <summary>
@@ -74,17 +80,84 @@ public class BetweenAttribute : Attribute
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(int? value)
 	{
-		if (value is null)
-		{
-			return null;
-		}
+		return value is not null && (value < _min || value > _max) ? _message : null;
+	}
 
-		if (value < _min || value > _max)
-		{
-			return _message;
-		}
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(int value)
+	{
+		return value < _min || value > _max ? _message : null;
+	}
 
-		return null;
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(byte? value)
+	{
+		return value is not null && (value < _min || value > _max) ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(byte value)
+	{
+		return value < _min || value > _max ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(long? value)
+	{
+		return value is not null && (value < _min || value > _max) ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(long value)
+	{
+		return value < _min || value > _max ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(short? value)
+	{
+		return value is not null && (value < _min || value > _max) ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(short value)
+	{
+		return value < _min || value > _max ? _message : null;
 	}
 
 	/// <summary>
@@ -95,16 +168,6 @@ public class BetweenAttribute : Attribute
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(object? value)
 	{
-		if (value is null)
-		{
-			return null;
-		}
-
-		if ((decimal?)value < _min || (decimal?)value > _max)
-		{
-			return _message;
-		}
-
-		return null;
+		return value is not null && ((decimal?)value < _min || (decimal?)value > _max) ? _message : null;
 	}
 }

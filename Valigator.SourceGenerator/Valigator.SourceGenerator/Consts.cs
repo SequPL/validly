@@ -13,6 +13,9 @@ internal static class Consts
 	public const string ValidatableAttributeQualifiedName = $"Valigator.{nameof(ValidatableAttribute)}";
 	public const string ValidatorAttributeQualifiedName = $"Valigator.Validators.{nameof(ValidatorAttribute)}";
 	public const string DisplayNameAttributeQualifiedName = "System.ComponentModel.DisplayNameAttribute";
+	public const string ValidationContextQualifiedName = $"Valigator.{nameof(ValidationContext)}";
+	public const string ValidationResultQualifiedName = $"Valigator.{nameof(ValidationResult)}";
+	public const string ExtendableValidationResultQualifiedName = $"Valigator.{nameof(ExtendableValidationResult)}";
 
 	public const string InternalValidationInvokerGlobalRef =
 		$"global::Valigator.Validators.{nameof(IInternalValidationInvoker)}";
@@ -26,6 +29,7 @@ internal static class Consts
 	public const string ServiceProviderGlobalRef = $"global::System.{nameof(IServiceProvider)}";
 
 	public const string ValidationResultName = "ValidationResult";
+	public const string ExtendableValidationResultName = "ExtendableValidationResult";
 	public const string CustomValidationMethodPrefix = "Validate";
 	public const string ValidationContextName = "ValidationContext";
 	public const string ValidationMessageName = "ValidationMessage";

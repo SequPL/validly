@@ -51,7 +51,6 @@ internal static class ValidatorsIncrementalValueProvider
 
 	private static ValidatorProperties GetValidatorProperties(INamedTypeSymbol typeSymbol)
 	{
-		// ImmutableArray<IMethodSymbol> constructors = typeSymbol.Constructors;
 		IMethodSymbol? isValidMethod =
 			typeSymbol.GetMembers(Consts.IsValidMethodName).FirstOrDefault() as IMethodSymbol;
 
@@ -60,7 +59,8 @@ internal static class ValidatorsIncrementalValueProvider
 			QualifiedName = typeSymbol.GetQualifiedName(),
 			IsValidMethod = isValidMethod is null
 				? EmptyIsValidMethodProperties
-				: SymbolMapper.MapMethod(isValidMethod),
+				// Skip first; it should always be `object?` - the validated value
+				: SymbolMapper.MapMethod(isValidMethod, null, qualifiedReturnTypeName: true, skipFirstParameter: true),
 		};
 	}
 

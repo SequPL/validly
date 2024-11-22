@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using Valigator.SourceGenerator.Dtos;
+using Valigator.SourceGenerator.Utils;
 using Valigator.SourceGenerator.Utils.Mapping;
 
 namespace Valigator.SourceGenerator.Builders;
@@ -42,7 +42,7 @@ internal class RulesClassBuilder
 		// Add null if there is only one validator; just because of tuple syntax - bracket syntax requires more than one element
 		if (validatorInstances.Count == 1)
 		{
-			tupleTypeArguments.Add("object");
+			tupleTypeArguments.Add("object?");
 			validatorInstances.Add("null");
 		}
 
@@ -57,17 +57,15 @@ internal class RulesClassBuilder
 		);
 	}
 
-	public string Build(int indent = 0)
+	public string Build()
 	{
-		var rules = Regex.Replace(string.Join(RulesDelimiter, _rules), $"^", $"\t", RegexOptions.Multiline);
+		var rules = string.Join(RulesDelimiter, _rules).Indent();
 
-		var klass = $$"""
+		return $$"""
 			file static class {{_className}}
 			{
 			{{rules}}
 			}
 			""";
-
-		return Regex.Replace(klass, "^", new string('\t', indent), RegexOptions.Multiline);
 	}
 }

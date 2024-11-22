@@ -11,7 +11,7 @@ public partial class CreateUserRequest
 	[Required]
 	[LengthBetween(5, 20)]
 	[System.ComponentModel.DataAnnotations.Required]
-	[System.ComponentModel.DataAnnotations.Length(5, 20)]
+	[System.ComponentModel.DataAnnotations.StringLength(20, MinimumLength = 5)]
 	public required string Username { get; set; }
 
 	[Required]
@@ -37,4 +37,11 @@ public partial class CreateUserRequest
 	[NotEmpty]
 	[System.ComponentModel.DataAnnotations.MinLength(1)]
 	public string? LastName { get; set; }
+
+	public required string NumberOfInvalidItems { get; set; }
+
+	public override string ToString()
+	{
+		return NumberOfInvalidItems;
+	}
 }

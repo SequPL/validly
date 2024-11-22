@@ -49,12 +49,13 @@ internal class CustomValidationInterfaceBuilder
 			// }
 
 			// Full return type name including generic arguments
+			var nullability = (existingMethod.ReturnTypeType & ReturnTypeType.Nullable) != 0 ? "?" : string.Empty;
 			var returnType =
 				existingMethod.ReturnType
 				+ (
 					existingMethod.ReturnTypeGenericArgument is null
-						? string.Empty
-						: $"<{existingMethod.ReturnTypeGenericArgument}>"
+						? nullability
+						: $"<{existingMethod.ReturnTypeGenericArgument}{nullability}>"
 				);
 
 			// Dependencies
@@ -177,20 +178,18 @@ internal class CustomValidationInterfaceBuilder
 		// 		);
 	}
 
-	public string Build(int indent = 0)
+	public string Build()
 	{
 		if (_customValidationMethods.Count == 0)
 		{
 			return string.Empty;
 		}
 
-		var klass = $$"""
+		return $$"""
 			internal interface {{_interfaceName}}
 			{
 				{{string.Join(MethodDelimiter, _customValidationMethods)}}
 			}
 			""";
-
-		return Regex.Replace(klass, "^", new string('\t', indent), RegexOptions.Multiline);
 	}
 }

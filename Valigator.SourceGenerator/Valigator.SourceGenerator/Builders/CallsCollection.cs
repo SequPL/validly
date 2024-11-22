@@ -5,6 +5,11 @@ namespace Valigator.SourceGenerator.Builders;
 internal class CallsCollection
 {
 	/// <summary>
+	/// Calls with return type ValidationResult; complexity 1
+	/// </summary>
+	public readonly List<ValidatorCallInfo> ValidationResults = new();
+
+	/// <summary>
 	/// Calls with return type ValidationMessage; complexity 1
 	/// </summary>
 	public readonly List<ValidatorCallInfo> Messages = new();
@@ -29,7 +34,15 @@ internal class CallsCollection
 	/// </summary>
 	public readonly List<ValidatorCallInfo> AsyncEnumerables = new();
 
-	public bool AnyAsync() => Tasks.Any() || AsyncEnumerables.Any();
+	public bool AnyAsync() => Tasks.Count != 0 || AsyncEnumerables.Count != 0;
+
+	public bool Any() =>
+		ValidationResults.Count != 0
+		|| Messages.Count != 0
+		|| Validations.Count != 0
+		|| Enumerables.Count != 0
+		|| Tasks.Count != 0
+		|| AsyncEnumerables.Count != 0;
 
 	/// <summary>
 	/// Add call to collection
@@ -60,6 +73,10 @@ internal class CallsCollection
 		else if ((type & ReturnTypeType.ValidationMessage) != 0)
 		{
 			Messages.Add(validatorCall);
+		}
+		else if ((type & ReturnTypeType.ValidationResult) != 0)
+		{
+			ValidationResults.Add(validatorCall);
 		}
 
 		return this;

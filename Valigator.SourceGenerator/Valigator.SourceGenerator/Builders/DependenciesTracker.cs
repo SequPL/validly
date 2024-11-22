@@ -2,17 +2,29 @@ namespace Valigator.SourceGenerator.Builders;
 
 public class DependenciesTracker
 {
-	private HashSet<string> _dependencies = new();
+	private readonly HashSet<string> _services = new();
 
-	public IReadOnlyCollection<string> Dependencies => _dependencies;
+	public bool HasDependencies { get; private set; }
+
+	public IReadOnlyCollection<string> Services => _services;
 
 	public void AddDependency(string dependency)
 	{
-		if (dependency == Consts.ValidationContextName)
+		HasDependencies = true;
+
+		if (
+			dependency
+			is Consts.ValidationContextName
+				or Consts.ValidationContextQualifiedName
+				or Consts.ValidationResultName
+				or Consts.ValidationResultQualifiedName
+				or Consts.ExtendableValidationResultName
+				or Consts.ExtendableValidationResultQualifiedName
+		)
 		{
 			return;
 		}
 
-		_dependencies.Add(dependency);
+		_services.Add(dependency);
 	}
 }

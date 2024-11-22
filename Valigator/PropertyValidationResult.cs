@@ -15,12 +15,10 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 
 	private static readonly ArrayPool<ValidationMessage> ValidationMessagePool = ArrayPool<ValidationMessage>.Shared;
 
-	private bool? _isSuccess;
 	private string _propertyName = null!;
 	private IReadOnlyList<ValidationMessage>? _messages;
+	private bool _disposed;
 
-	// private AnyAbleLazyEnumerator<ValidationMessage>? _messagesEnumerable;
-	private IEnumerable<ValidationMessage>? _messagesEnumerable;
 	private ValidationMessage[] _messagesArray = null!;
 	private int _messagesArrayItemCount;
 
@@ -34,31 +32,10 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	/// </summary>
 	public IReadOnlyCollection<ValidationMessage> Messages => _messages ??= GetMessages();
 
-	private IReadOnlyList<ValidationMessage> GetMessages()
-	{
-		if (_messagesEnumerable is not null)
-		{
-			// Copy messages from enumerable to array
-			// !! Messages that do not fit in the array are discarded !!
-			// _messagesEnumerable.Items.CopyTo(_messagesArray, Math.Min(_messagesArrayItemCount, _messagesArray.Length));
-			// _messagesArrayItemCount += _messagesEnumerable.Items.Count;
-
-			foreach (ValidationMessage validationMessage in _messagesEnumerable)
-			{
-				if (_messagesArrayItemCount < _messagesArray.Length)
-				{
-					_messagesArray[_messagesArrayItemCount++] = validationMessage;
-				}
-			}
-		}
-
-		return new ReadOnlyCollection<ValidationMessage>(_messagesArray.AsSpan(0, _messagesArrayItemCount).ToArray());
-	}
-
 	/// <summary>
 	/// True if validation of this property was successful
 	/// </summary>
-	public bool IsSuccess => _isSuccess ??= _messagesArrayItemCount == 0 && !(_messagesEnumerable?.Any() ?? false);
+	public bool IsSuccess => _messagesArrayItemCount == 0;
 
 	static PropertyValidationResult() { }
 
@@ -67,63 +44,24 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	/// </summary>
 	/// <param name="propertyName"></param>
 	/// <returns></returns>
-	public static PropertyValidationResult Create(
-		string propertyName
-	// IEnumerable<ValidationMessage>? enumerableMessages = null
-	)
+	public static PropertyValidationResult Create(string propertyName)
 	{
 		var result = Pool.Get();
 		result.Reset(propertyName);
 
-		// if (enumerableMessages is not null)
-		// {
-		// 	result._messagesEnumerable = enumerableMessages; //new AnyAbleLazyEnumerator<ValidationMessage>(enumerableMessages);
-		// }
-
 		return result;
 	}
 
-	// /// <summary>
-	// /// Creates new instance of <see cref="PropertyValidationResult"/>
-	// /// </summary>
-	// /// <param name="propertyName"></param>
-	// /// <param name="enumerableMessages"></param>
-	// /// <returns></returns>
-	// public static async ValueTask<PropertyValidationResult> Create(
-	// 	string propertyName,
-	// 	IAsyncEnumerable<ValidationMessage>? enumerableMessages = null
-	// )
-	// {
-	// 	var result = Pool.Get();
-	// 	result.Reset(propertyName);
-	//
-	// 	if (enumerableMessages is not null)
-	// 	{
-	// 		// TODO: Do some kind of lazy evaluation? PropertyValidationResult has GetMessages() method which is not async
-	// 		result._messagesEnumerable = await Enumerate(enumerableMessages);
-	// 	}
-	//
-	// 	return result;
-	// }
-
-	// private static async ValueTask<IEnumerable<ValidationMessage>> Enumerate(
-	// 	IAsyncEnumerable<ValidationMessage> enumerableMessages
-	// )
-	// {
-	// 	var list = new List<ValidationMessage>();
-	//
-	// 	await foreach (var message in enumerableMessages)
-	// 	{
-	// 		list.Add(message);
-	// 	}
-	//
-	// 	return list;
-	// }
-
 	private void Reset(string propertyName)
 	{
+		_disposed = false;
 		_propertyName = propertyName;
 		_messagesArray = ValidationMessagePool.Rent(ValigatorConfig.PropertyMessagesPoolSize);
+	}
+
+	private IReadOnlyList<ValidationMessage> GetMessages()
+	{
+		return new ReadOnlyCollection<ValidationMessage>(_messagesArray.AsSpan(0, _messagesArrayItemCount).ToArray());
 	}
 
 	/// <summary>
@@ -131,14 +69,61 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	/// </summary>
 	/// <param name="message"></param>
 	/// <returns></returns>
-	public PropertyValidationResult AddValidationMessage(ValidationMessage? message)
+	public void AddValidationMessage(ValidationMessage? message)
 	{
 		if (message is not null && _messagesArrayItemCount < _messagesArray.Length)
 		{
 			_messagesArray[_messagesArrayItemCount++] = message;
 		}
+	}
 
-		return this;
+	/// <summary>
+	/// Add message to the validation result
+	/// </summary>
+	/// <param name="message"></param>
+	/// <returns></returns>
+	public void AddValidationMessage(Validation? message)
+	{
+		if (message?.IsSuccess == false && _messagesArrayItemCount < _messagesArray.Length)
+		{
+			_messagesArray[_messagesArrayItemCount++] = message.Message;
+		}
+	}
+
+	/// <summary>
+	/// Add messages to the validation result
+	/// </summary>
+	/// <param name="messages"></param>
+	/// <returns></returns>
+	public void AddValidationMessages(IEnumerable<ValidationMessage> messages)
+	{
+		foreach (ValidationMessage message in messages)
+		{
+			if (_messagesArrayItemCount >= _messagesArray.Length)
+			{
+				break;
+			}
+
+			_messagesArray[_messagesArrayItemCount++] = message;
+		}
+	}
+
+	/// <summary>
+	/// Add messages to the validation result
+	/// </summary>
+	/// <param name="messages"></param>
+	/// <returns></returns>
+	public async Task AddValidationMessages(IAsyncEnumerable<ValidationMessage> messages)
+	{
+		await foreach (ValidationMessage message in messages)
+		{
+			if (_messagesArrayItemCount >= _messagesArray.Length)
+			{
+				break;
+			}
+
+			_messagesArray[_messagesArrayItemCount++] = message;
+		}
 	}
 
 	PropertyValidationResult IInternalPropertyValidationResult.AsNestedPropertyValidationResult(
@@ -153,9 +138,7 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	bool IResettable.TryReset()
 	{
 		_propertyName = null!;
-		_isSuccess = null;
 		_messages = null;
-		_messagesEnumerable = null;
 		_messagesArrayItemCount = 0;
 		return true;
 	}
@@ -167,19 +150,25 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 	/// <returns>Returns true when object is disposed (and not returned to the pool).</returns>
 	private bool Dispose(bool disposing)
 	{
+		if (_disposed)
+		{
+			return true;
+		}
+
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 		if (_messagesArray is not null)
 		{
 			ValidationMessagePool.Return(_messagesArray);
 		}
 
+		_messagesArray = null!;
+
 		// if (disposing)
 		// {
 		// 	_messagesEnumerable?.Dispose();
 		// }
 
-		_messagesArray = null!;
-		_messagesEnumerable = null;
+		_disposed = true;
 
 		// return true;
 		return !Pool.Return(this);

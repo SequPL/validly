@@ -8,63 +8,68 @@ namespace Benchmarks;
 // [SimpleJob(RuntimeMoniker.Net80)]
 // [SimpleJob(RuntimeMoniker.NativeAot80)]
 // [RPlotExporter]
-[MemoryDiagnoser]
+// [MemoryDiagnoser]
 public class DevValigatorBenchmark
 {
-	private static readonly CreateUserRequest CreateUserRequestValid =
-		new()
+	[ParamsSource(nameof(Objects))]
+	public CreateUserRequest NumberOfInvalidValues { get; set; } = null!;
+
+	public IEnumerable<CreateUserRequest> Objects =>
+		new CreateUserRequest[]
 		{
-			Username = "username",
-			Password = "S0m3_pa55w0rd#",
-			Email = "email@gmail.com",
-			Age = 25,
-			FirstName = "Tony",
-			LastName = "Stark",
+			new()
+			{
+				Username = "username",
+				Password = "S0m3_pa55w0rd#",
+				Email = "email@gmail.com",
+				Age = 25,
+				FirstName = "Tony",
+				LastName = "Stark",
+				NumberOfInvalidItems = "none",
+			},
+			new()
+			{
+				Username = "",
+				Password = "S0m3_pa55w0rd#",
+				Email = "email@gmail.com",
+				Age = 25,
+				FirstName = "Tony",
+				LastName = "Stark",
+				NumberOfInvalidItems = "one",
+			},
+			new()
+			{
+				Username = "Tom",
+				Password = "pass",
+				Email = "email[at]gmail.com",
+				Age = 16,
+				FirstName = "",
+				LastName = "",
+				NumberOfInvalidItems = "all",
+			},
 		};
 
-	private static readonly CreateUserRequest CreateUserRequestOneInvalid =
-		new()
-		{
-			Username = "",
-			Password = "S0m3_pa55w0rd#",
-			Email = "email@gmail.com",
-			Age = 25,
-			FirstName = "Tony",
-			LastName = "Stark",
-		};
-
-	private static readonly CreateUserRequest CreateUserRequestAllInvalid =
-		new()
-		{
-			Username = "Tom",
-			Password = "pass",
-			Email = "email[at]gmail.com",
-			Age = 16,
-			FirstName = "",
-			LastName = "",
-		};
-
-	[GlobalSetup]
-	public void Setup() { }
+	// [GlobalSetup]
+	// public void Setup() { }
 
 	[Benchmark]
 	public bool Valigator()
 	{
-		using var result = CreateUserRequestValid.Validate();
+		using var result = NumberOfInvalidValues.Validate();
 		return result.IsSuccess;
 	}
 
-	[Benchmark]
-	public bool ValigatorOneInvalid()
-	{
-		using var result = CreateUserRequestOneInvalid.Validate();
-		return result.IsSuccess;
-	}
-
-	[Benchmark]
-	public bool ValigatorAllInvalid()
-	{
-		using var result = CreateUserRequestAllInvalid.Validate();
-		return result.IsSuccess;
-	}
+	// [Benchmark]
+	// public bool ValigatorOneInvalid()
+	// {
+	// 	using var result = NumberOfInvalidValues.Validate();
+	// 	return result.IsSuccess;
+	// }
+	//
+	// [Benchmark]
+	// public bool ValigatorAllInvalid()
+	// {
+	// 	using var result = NumberOfInvalidValues.Validate();
+	// 	return result.IsSuccess;
+	// }
 }

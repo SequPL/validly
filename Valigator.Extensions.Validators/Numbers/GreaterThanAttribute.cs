@@ -54,7 +54,73 @@ public class GreaterThanAttribute : Attribute
 	/// <param name="value"></param>
 	/// <returns></returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public ValidationMessage? IsValid(object? value) // TODO: Add overloads to prevent conversion
+	public ValidationMessage? IsValid(decimal? value)
+	{
+		return value is not null && value <= _min ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(decimal value)
+	{
+		return value <= _min ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(int? value)
+	{
+		return value is not null && value <= _min ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(int value)
+	{
+		return value <= _min ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(double? value)
+	{
+		return value is not null && value <= (double)_min ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(double value)
+	{
+		return value <= (double)_min ? _message : null;
+	}
+
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(object? value)
 	{
 		if (value is null)
 		{

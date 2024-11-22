@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 
 namespace Valigator.SourceGenerator.Utils;
@@ -31,5 +32,16 @@ public static class Extensions
 	public static string GetQualifiedName(this INamedTypeSymbol symbol)
 	{
 		return symbol.ToDisplayString(QualifiedNameArityFormat);
+	}
+
+	/// <summary>
+	/// Indent all lines in the string by given count of tabs
+	/// </summary>
+	/// <param name="source"></param>
+	/// <param name="count"></param>
+	/// <returns></returns>
+	public static string Indent(this string source, int count = 1)
+	{
+		return Regex.Replace(source, "^", new string('\t', count), RegexOptions.Multiline);
 	}
 }

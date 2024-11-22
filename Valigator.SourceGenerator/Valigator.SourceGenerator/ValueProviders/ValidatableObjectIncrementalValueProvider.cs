@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Valigator.SourceGenerator.Dtos;
@@ -34,11 +35,8 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 		var usings = GetUsings(targetNode);
 		var membersSymbols = typeSymbol.GetMembers();
-		var methods = membersSymbols.OfType<IMethodSymbol>().Select(s => SymbolMapper.MapMethod(s)).ToArray();
-		var properties = membersSymbols
-			.OfType<IPropertySymbol>()
-			.Select(propertySymbol => SymbolMapper.MapValidatableProperty(propertySymbol, semanticModel))
-			.ToArray();
+		var methods = GetMethods(membersSymbols, semanticModel);
+		var properties = GetProperties(membersSymbols, semanticModel);
 
 		bool inheritsValidatableObject =
 			typeSymbol
@@ -53,7 +51,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 		return new ObjectProperties
 		{
 			UseAutoValidators = GetUseAutoValidatorsValue(validatableAttribute),
-			Usings = new EquatableArray<string>(usings.Select(usingSyntax => usingSyntax.ToString()).ToArray()),
+			Usings = new EquatableArray<string>(usings.Select(static usingSyntax => usingSyntax.ToString()).ToArray()),
 			ClassOrRecordKeyword = typeSymbol.IsRecord ? "record" : "class",
 			Accessibility = typeSymbol.DeclaredAccessibility,
 			Name = typeSymbol.Name,
@@ -61,16 +59,61 @@ internal static class ValidatableObjectIncrementalValueProvider
 			Properties = new EquatableArray<PropertyProperties>(properties),
 			Methods = new EquatableArray<MethodProperties>(methods),
 			InheritsValidatableObject = inheritsValidatableObject,
-			BeforeValidateMethod = methods.FirstOrDefault(m => m.MethodName == Consts.BeforeValidateMethodName),
-			AfterValidateMethod = methods.FirstOrDefault(m => m.MethodName == Consts.AfterValidateMethodName),
+			BeforeValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.BeforeValidateMethodName),
+			AfterValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.AfterValidateMethodName),
 		};
+	}
+
+	private static PropertyProperties[] GetProperties(
+		ImmutableArray<ISymbol> membersSymbols,
+		SemanticModel semanticModel
+	)
+	{
+		var list = new List<PropertyProperties>();
+
+		foreach (var symbol in membersSymbols)
+		{
+			if (symbol is not IPropertySymbol propertySymbol)
+			{
+				continue;
+			}
+
+			list.Add(SymbolMapper.MapValidatableProperty(propertySymbol, semanticModel));
+		}
+
+		return list.ToArray();
+	}
+
+	private static MethodProperties[] GetMethods(ImmutableArray<ISymbol> membersSymbols, SemanticModel semanticModel)
+	{
+		var list = new List<MethodProperties>();
+
+		foreach (var symbol in membersSymbols)
+		{
+			if (symbol is not IMethodSymbol methodSymbol)
+			{
+				continue;
+			}
+
+			if (
+				methodSymbol.MethodKind
+				is MethodKind.Ordinary
+					or MethodKind.ExplicitInterfaceImplementation
+					or MethodKind.DeclareMethod
+			)
+			{
+				list.Add(SymbolMapper.MapMethod(methodSymbol, semanticModel));
+			}
+		}
+
+		return list.ToArray();
 	}
 
 	private static bool? GetUseAutoValidatorsValue(AttributeData validatableAttribute)
 	{
 		if (
 			validatableAttribute
-				.NamedArguments.FirstOrDefault(x => x.Key == nameof(ValidatableAttribute.UseAutoValidators))
+				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.UseAutoValidators))
 				.Value.Value
 			is true
 		)
@@ -80,7 +123,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 		if (
 			validatableAttribute
-				.NamedArguments.FirstOrDefault(x => x.Key == nameof(ValidatableAttribute.NoAutoValidators))
+				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.NoAutoValidators))
 				.Value.Value
 			is true
 		)

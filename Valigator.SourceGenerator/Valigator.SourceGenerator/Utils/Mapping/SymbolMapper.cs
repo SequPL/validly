@@ -4,17 +4,23 @@ namespace Valigator.SourceGenerator.Utils.Mapping;
 
 internal static class SymbolMapper
 {
-	public static MethodProperties MapMethod(IMethodSymbol methodSymbol, bool qualifiedReturnTypeName = false)
+	public static MethodProperties MapMethod(
+		IMethodSymbol methodSymbol,
+		SemanticModel? semanticModel,
+		bool skipFirstParameter = false,
+		bool qualifiedReturnTypeName = false
+	)
 	{
-		string[] dependencies = new string[Math.Max(methodSymbol.Parameters.Length - 1, 0)];
+		string[] dependencies = new string[
+			skipFirstParameter ? Math.Max(methodSymbol.Parameters.Length - 1, 0) : methodSymbol.Parameters.Length
+		];
 		bool requiresInjection = false;
 
-		// Skip first; it should always be `object?` - the validated value
-		for (int i = 1; i < methodSymbol.Parameters.Length; i++)
+		for (int i = skipFirstParameter ? 1 : 0; i < methodSymbol.Parameters.Length; i++)
 		{
 			if (Consts.ValidationContextName != (dependencies[i] = methodSymbol.Parameters[i].Type.Name))
 			{
-				// If these is some dependency other than ValidationContext, we need to inject it
+				// If there is some dependency other than ValidationContext, we need to inject it
 				requiresInjection = true;
 			}
 		}
@@ -28,11 +34,11 @@ internal static class SymbolMapper
 				qualifiedReturnTypeName && namedReturnType is not null
 					? namedReturnType.GetQualifiedName()
 					: methodSymbol.ReturnType.Name,
-			ReturnTypeType = namedReturnType is not null ? ToReturnTypeType(namedReturnType) : ReturnTypeType.Void,
+			ReturnTypeType = namedReturnType is not null
+				? ToReturnTypeType(namedReturnType, semanticModel)
+				: ReturnTypeType.Void,
 			ReturnTypeGenericArgument = namedReturnType?.TypeArguments.FirstOrDefault()?.Name,
 			Dependencies = new EquatableArray<string>(dependencies),
-			// IsAsync = methodSymbol.ReturnType.Name is "Task" or "ValueTask" or "IAsyncEnumerable",
-			// Awaitable = methodSymbol.ReturnType.Name is "Task" or "ValueTask",
 			RequiresInjection = requiresInjection,
 		};
 	}
@@ -97,37 +103,42 @@ internal static class SymbolMapper
 		};
 	}
 
-	public static ReturnTypeType ToReturnTypeType(INamedTypeSymbol returnType)
+	public static ReturnTypeType ToReturnTypeType(INamedTypeSymbol returnType, SemanticModel? semanticModel)
 	{
-		ReturnTypeType result = ReturnTypeType.Void;
-
-		switch (returnType.Name)
+		ReturnTypeType result = returnType.Name switch
 		{
-			case "Task":
-				result = ReturnTypeType.Task | ReturnTypeType.Async | ReturnTypeType.Awaitable;
-				break;
-			case "ValueTask":
-				result = ReturnTypeType.ValueTask | ReturnTypeType.Async | ReturnTypeType.Awaitable;
-				break;
-			case "IAsyncEnumerable":
-				result = ReturnTypeType.AsyncEnumerable | ReturnTypeType.Awaitable;
-				break;
-			case "IEnumerable":
-				result = ReturnTypeType.Enumerable;
-				break;
+			"Task" => ReturnTypeType.Task,
+			"ValueTask" => ReturnTypeType.ValueTask,
+			"IAsyncEnumerable" => ReturnTypeType.AsyncEnumerable,
+			"IEnumerable" => ReturnTypeType.Enumerable,
+			"ValidationResult" => ReturnTypeType.ValidationResult,
+			"ValidationMessage" => ReturnTypeType.ValidationMessage,
+			"Validation" => ReturnTypeType.Validation,
+			_ => ReturnTypeType.Void,
+		};
+
+		if ((result & ReturnTypeType.MayBeGeneric) != 0)
+		{
+			result |= returnType.TypeArguments.FirstOrDefault()?.Name switch
+			{
+				"ValidationResult" => ReturnTypeType.ValidationResult,
+				"ValidationMessage" => ReturnTypeType.ValidationMessage,
+				"Validation" => ReturnTypeType.Validation,
+				_ => ReturnTypeType.Void,
+			};
 		}
 
-		switch (returnType.TypeArguments.FirstOrDefault()?.Name)
+		if (
+			returnType.NullableAnnotation == NullableAnnotation.Annotated
+			|| (
+				semanticModel is not null
+				&& (
+					semanticModel.GetNullableContext(returnType.Locations[0].SourceSpan.Start) & NullableContext.Enabled
+				) != NullableContext.Enabled
+			)
+		)
 		{
-			case "ValidationResult":
-				result |= ReturnTypeType.ValidationResult;
-				break;
-			case "ValidationMessage":
-				result |= ReturnTypeType.ValidationMessage;
-				break;
-			case "Validation":
-				result |= ReturnTypeType.Validation;
-				break;
+			result |= ReturnTypeType.Nullable;
 		}
 
 		return result;
