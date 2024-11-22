@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using Validot;
+using Validator = System.ComponentModel.DataAnnotations.Validator;
 
 namespace Benchmarks;
 
@@ -65,13 +67,33 @@ public class SimpleValidationLibrariesComparisonBenchmark
 	public bool DataAnnotation() =>
 		Validator.TryValidateObject(NumberOfInvalidValues, new ValidationContext(NumberOfInvalidValues), null);
 
-	// [Benchmark]
-	// public bool Validot() { }
+	private static readonly IValidator<CreateUserRequest> ValidotValidator =
+		Validot.Validator.Factory.Create<CreateUserRequest>(_ =>
+			_.Member(m => m.Username, m => m.Required().And().LengthBetween(5, 20))
+				.Member(m => m.Password, m => m.Required().And().MinLength(12))
+				.Member(m => m.Email, m => m.Required().And().Email(EmailValidationMode.DataAnnotationsCompatible))
+				.Member(m => m.Age, m => m.BetweenOrEqualTo(18, 99))
+				.Member(m => m.FirstName, m => m.Optional().NotEmpty())
+				.Member(m => m.LastName, m => m.Optional().NotEmpty())
+		);
+
+	[Benchmark(Description = "Validot (IsValid)")]
+	public bool ValidotIsValid()
+	{
+		return ValidotValidator.IsValid(NumberOfInvalidValues);
+	}
+
+	[Benchmark(Description = "Validot (Validate)")]
+	public bool ValidotValidate()
+	{
+		return !ValidotValidator.Validate(NumberOfInvalidValues).AnyErrors;
+	}
+
+	private static readonly CreateUserRequestValidator FluentValidator = new();
 
 	[Benchmark]
 	public bool FluentValidation()
 	{
-		var validator = new CreateUserRequestValidator();
-		return validator.Validate(NumberOfInvalidValues).IsValid;
+		return FluentValidator.Validate(NumberOfInvalidValues).IsValid;
 	}
 }
