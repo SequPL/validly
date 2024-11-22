@@ -1,5 +1,4 @@
 using FluentValidation;
-using FluentValidation.Validators;
 using Valigator;
 using Valigator.Extensions.Validators.Common;
 using Valigator.Extensions.Validators.Numbers;
