@@ -1,4 +1,4 @@
-# Valigator
+# Validly
 
 This repository contains a powerful, efficient, and highly customizable validation library for .NET, leveraging the capabilities of C# Source Generators to provide compile-time validation logic generation. The library is designed to simplify model validation in .NET applications by automatically generating validation code based on attributes and custom rules, reducing runtime overhead and enhancing code maintainability.
 
@@ -53,17 +53,17 @@ app.MapPost("/users", async (CreateUserRequest request) =>
 ## Installation
 Install the package via NuGet:
 ```bash
-dotnet add package Valigator
+dotnet add package Validly
 ```
 
 Install the source generator package to enable compile-time validation code generation:
 ```bash
-dotnet add package Valigator.SourceGenerator
+dotnet add package Validly.SourceGenerator
 ```
 
 Install the package with default validators:
 ```bash
-dotnet add package Valigator.Validators
+dotnet add package Validly.Validators
 ```
 
 ## Contributions

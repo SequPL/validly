@@ -12,7 +12,7 @@
 		<Authors>Roman Jámbor</Authors>
 		<PackageReadmeFile>assets/README.md</PackageReadmeFile>
 		<PackageLicenseFile>assets/LICENSE</PackageLicenseFile>
-		<RepositoryUrl>https://github.com/Hookyns/valigator</RepositoryUrl>
+		<RepositoryUrl>https://github.com/Hookyns/validly</RepositoryUrl>
 
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>

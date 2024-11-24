@@ -7,13 +7,13 @@ Unknown processor
   .NET 8.0             : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
   .NET Framework 4.7.2 : .NET Framework 4.8.1 (4.8.9282.0), X64 RyuJIT VectorSize=256
 
-MaxIterationCount=20  
+MaxIterationCount=20
 
 ```
 | Method               | Job                  | Runtime              | NumberOfInvalidValues | Mean         | Error      | StdDev     | Ratio | RatioSD | Gen0   | Gen1   | Gen2   | Allocated | Alloc Ratio |
 |--------------------- |--------------------- |--------------------- |---------------------- |-------------:|-----------:|-----------:|------:|--------:|-------:|-------:|-------:|----------:|------------:|
-| **Valigator**            | **.NET 8.0**             | **.NET 8.0**             | **all**                   |    **395.22 ns** |  **29.521 ns** |  **32.812 ns** |  **0.67** |    **0.07** |      **-** |      **-** |      **-** |         **-** |        **0.00** |
-| Valigator            | .NET Framework 4.7.2 | .NET Framework 4.7.2 | all                   |    592.47 ns |  31.381 ns |  34.879 ns |  1.00 |    0.08 | 0.0105 | 0.0048 | 0.0010 |      63 B |        1.00 |
+| **Validly**            | **.NET 8.0**             | **.NET 8.0**             | **all**                   |    **395.22 ns** |  **29.521 ns** |  **32.812 ns** |  **0.67** |    **0.07** |      **-** |      **-** |      **-** |         **-** |        **0.00** |
+| Validly            | .NET Framework 4.7.2 | .NET Framework 4.7.2 | all                   |    592.47 ns |  31.381 ns |  34.879 ns |  1.00 |    0.08 | 0.0105 | 0.0048 | 0.0010 |      63 B |        1.00 |
 |                      |                      |                      |                       |              |            |            |       |         |        |        |        |           |             |
 | DataAnnotation       | .NET 8.0             | .NET 8.0             | all                   |  1,656.12 ns | 102.219 ns | 113.616 ns |  0.25 |    0.02 | 0.3834 | 0.0019 |      - |    3208 B |        0.50 |
 | DataAnnotation       | .NET Framework 4.7.2 | .NET Framework 4.7.2 | all                   |  6,506.08 ns | 198.577 ns | 228.682 ns |  1.00 |    0.05 | 1.0071 | 0.0076 |      - |    6371 B |        1.00 |
@@ -27,8 +27,8 @@ MaxIterationCount=20
 | FluentValidation     | .NET 8.0             | .NET 8.0             | all                   |  7,049.77 ns | 173.199 ns | 185.321 ns |  0.56 |    0.03 | 1.6632 | 0.0229 |      - |   13928 B |        0.77 |
 | FluentValidation     | .NET Framework 4.7.2 | .NET Framework 4.7.2 | all                   | 12,613.47 ns | 507.596 ns | 543.122 ns |  1.00 |    0.06 | 2.8381 | 0.0305 |      - |   17997 B |        1.00 |
 |                      |                      |                      |                       |              |            |            |       |         |        |        |        |           |             |
-| **Valigator**            | **.NET 8.0**             | **.NET 8.0**             | **none**                  |    **411.79 ns** |   **6.209 ns** |   **5.504 ns** |  **0.70** |    **0.04** |      **-** |      **-** |      **-** |         **-** |        **0.00** |
-| Valigator            | .NET Framework 4.7.2 | .NET Framework 4.7.2 | none                  |    586.99 ns |  33.335 ns |  37.051 ns |  1.00 |    0.09 | 0.0105 | 0.0048 | 0.0010 |      63 B |        1.00 |
+| **Validly**            | **.NET 8.0**             | **.NET 8.0**             | **none**                  |    **411.79 ns** |   **6.209 ns** |   **5.504 ns** |  **0.70** |    **0.04** |      **-** |      **-** |      **-** |         **-** |        **0.00** |
+| Validly            | .NET Framework 4.7.2 | .NET Framework 4.7.2 | none                  |    586.99 ns |  33.335 ns |  37.051 ns |  1.00 |    0.09 | 0.0105 | 0.0048 | 0.0010 |      63 B |        1.00 |
 |                      |                      |                      |                       |              |            |            |       |         |        |        |        |           |             |
 | DataAnnotation       | .NET 8.0             | .NET 8.0             | none                  |  1,847.46 ns |  43.855 ns |  45.036 ns |  0.31 |    0.01 | 0.3834 | 0.0019 |      - |    3208 B |        0.50 |
 | DataAnnotation       | .NET Framework 4.7.2 | .NET Framework 4.7.2 | none                  |  5,941.03 ns |  73.036 ns |  60.988 ns |  1.00 |    0.01 | 1.0071 | 0.0076 |      - |    6371 B |        1.00 |
@@ -42,8 +42,8 @@ MaxIterationCount=20
 | FluentValidation     | .NET 8.0             | .NET 8.0             | none                  |    798.46 ns |  15.327 ns |  15.054 ns |  0.52 |    0.01 | 0.0906 |      - |      - |     760 B |        0.98 |
 | FluentValidation     | .NET Framework 4.7.2 | .NET Framework 4.7.2 | none                  |  1,533.92 ns |  18.224 ns |  15.218 ns |  1.00 |    0.01 | 0.1221 |      - |      - |     778 B |        1.00 |
 |                      |                      |                      |                       |              |            |            |       |         |        |        |        |           |             |
-| **Valigator**            | **.NET 8.0**             | **.NET 8.0**             | **one**                   |    **403.05 ns** |   **8.139 ns** |   **9.046 ns** |  **0.69** |    **0.02** |      **-** |      **-** |      **-** |         **-** |        **0.00** |
-| Valigator            | .NET Framework 4.7.2 | .NET Framework 4.7.2 | one                   |    586.39 ns |  11.231 ns |  12.017 ns |  1.00 |    0.03 | 0.0105 | 0.0048 | 0.0010 |      63 B |        1.00 |
+| **Validly**            | **.NET 8.0**             | **.NET 8.0**             | **one**                   |    **403.05 ns** |   **8.139 ns** |   **9.046 ns** |  **0.69** |    **0.02** |      **-** |      **-** |      **-** |         **-** |        **0.00** |
+| Validly            | .NET Framework 4.7.2 | .NET Framework 4.7.2 | one                   |    586.39 ns |  11.231 ns |  12.017 ns |  1.00 |    0.03 | 0.0105 | 0.0048 | 0.0010 |      63 B |        1.00 |
 |                      |                      |                      |                       |              |            |            |       |         |        |        |        |           |             |
 | DataAnnotation       | .NET 8.0             | .NET 8.0             | one                   |  1,560.35 ns |  83.501 ns |  96.160 ns |  0.31 |    0.02 | 0.3357 |      - |      - |    2808 B |        0.52 |
 | DataAnnotation       | .NET Framework 4.7.2 | .NET Framework 4.7.2 | one                   |  5,004.08 ns | 111.559 ns | 123.998 ns |  1.00 |    0.03 | 0.8621 | 0.0076 |      - |    5440 B |        1.00 |

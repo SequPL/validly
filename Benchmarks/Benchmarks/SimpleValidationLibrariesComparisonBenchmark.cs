@@ -57,7 +57,7 @@ public class SimpleValidationLibrariesComparisonBenchmark
 	// public void Setup() { }
 
 	[Benchmark]
-	public bool Valigator()
+	public bool Validly()
 	{
 		using var result = NumberOfInvalidValues.Validate();
 		return result.IsSuccess;

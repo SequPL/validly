@@ -18,4 +18,4 @@ IConfig config = DefaultConfig
 	.AddJob(job);
 
 // RUN
-BenchmarkRunner.Run<DevValigatorBenchmark>(config);
+BenchmarkRunner.Run<DevValidlyBenchmark>(config);

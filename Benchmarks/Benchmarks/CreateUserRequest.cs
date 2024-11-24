@@ -1,8 +1,8 @@
 using FluentValidation;
-using Valigator;
-using Valigator.Extensions.Validators.Common;
-using Valigator.Extensions.Validators.Numbers;
-using Valigator.Extensions.Validators.Strings;
+using Validly;
+using Validly.Extensions.Validators.Common;
+using Validly.Extensions.Validators.Numbers;
+using Validly.Extensions.Validators.Strings;
 
 namespace Benchmarks;
 

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Profile 1": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\Validly.Tests\\Validly.Tests.csproj"
+    }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
+}
