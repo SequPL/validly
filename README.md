@@ -1,5 +1,10 @@
 # Validly
 
+[![NuGet](https://img.shields.io/nuget/v/Validly)](https://www.nuget.org/packages/Validly)
+[![License MIT](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)](https://opensource.org/licenses/MIT)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 This repository contains a powerful, efficient, and highly customizable validation library for .NET, leveraging the capabilities of C# Source Generators to provide compile-time validation logic generation. The library is designed to simplify model validation in .NET applications by automatically generating validation code based on attributes and custom rules, reducing runtime overhead and enhancing code maintainability.
 
 ## Key Features
@@ -11,7 +16,7 @@ This repository contains a powerful, efficient, and highly customizable validati
 - Seamless Integration: Designed to work smoothly in .NET applications, with support for dependency injection and easy configuration.
 
 ## Getting Started
-To start using the library, add it to your project as a NuGet package. Decorate your model properties with validation attributes and let the source generator handle the rest. Generated code will include optimized validation methods that you can call to validate instances of your models.
+To start using the library, add it to your project as a NuGet package. Decorate your model with `[Validatable]` attribute and properties with validation attributes and let the source generator handle the rest. Generated code will include optimized validation methods that you can call to validate instances of your models.
 
 ## Example Usage
 Define validation rules using attributes on your model properties:
@@ -66,8 +71,36 @@ Install the package with default validators:
 dotnet add package Validly.Validators
 ```
 
-## Contributions
-Contributions are welcome! Feel free to open issues, submit pull requests, or suggest enhancements to improve the library further.
+## Why Validly? Why Attribute-Based Validation?
+**Validly** was born out of the need for a simple, performant way to handle validations in applications, particularly when following Domain-Driven Design (DDD). In DDD, entities are responsible for their own validation. While validations on the API level are important, they cannot be the sole safeguard. The domain must validate entities independently, as the API is just one entry point to your system. Other sources, like background jobs or message queues, can also create or interact with domain objects.
+
+Humans make mistakes, and developers are no exception. Relying solely on API-level validations is risky; you need a robust validation layer directly in your domain to ensure data integrity across all interactions.
+
+**Why Not Existing Libraries?**
+
+Libraries like FluentValidation are powerful, but they have limitations:
+
+- Reflection-based design: While flexible, this approach bypasses static code analysis, making your code harder to refactor and less performant.
+- Complexity: These libraries often require additional boilerplate code and are more suited to abstract validation pipelines, such as middleware in an API, than to domain entities.
+
+Validly solves these issues by offering an attribute-based, source-generator-powered approach for validations. It combines simplicity, static analysis support, and high performance, making it an ideal choice for both API-level and domain-level validation.
+
+**Why Attribute-Based Validation?**
+
+Most validations are straightforward and can be expressed cleanly with attributes. For example, validating that a string is not empty or a number falls within a range shouldn’t require excessive boilerplate. Attributes allow you to express such requirements concisely and directly within your model.
+
+Separating validations from the model may even be considered an anti-pattern or a violation of the Single Responsibility Principle. When validations are defined externally, it increases the likelihood of developer errors—such as forgetting to update validations when the model changes. By keeping validations close to the model, Validly ensures consistency, simplifies maintenance, and minimizes mistakes.
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## License
 This project is licensed under the MIT License.

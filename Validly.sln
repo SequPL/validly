@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 		nuget.config = nuget.config
 		LICENSE = LICENSE
 		.config\dotnet-tools.json = .config\dotnet-tools.json
+		.all-contributorsrc = .all-contributorsrc
+		CONTRIBUTING.md = CONTRIBUTING.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validly.Tests", "Validly.Tests\Validly.Tests.csproj", "{00FD8772-A4A1-4FB8-A7E5-9C76FEBF12E2}"

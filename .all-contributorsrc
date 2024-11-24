@@ -1,0 +1,33 @@
+{
+  "projectName": "validly",
+  "projectOwner": "Hookyns",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "none",
+  "contributors": [
+    {
+      "login": "Hookyns",
+      "name": "Roman Jámbor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2551259?v=4",
+      "profile": "https://bitbucket.org/HookCZ/",
+      "contributions": [
+        "code",
+        "maintenance",
+        "doc",
+        "review",
+        "example",
+        "ideas",
+        "infra",
+        "question",
+        "test"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true
+}
