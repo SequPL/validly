@@ -26,7 +26,7 @@ internal record ObjectProperties
 	/// <summary>
 	/// Namespace of the validator
 	/// </summary>
-	public required string Namespace { get; init; }
+	public required string? Namespace { get; init; }
 
 	/// <summary>
 	/// Name of the validator without the "Validator" suffix

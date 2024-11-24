@@ -28,6 +28,7 @@ internal static class Consts
 	public const string InternalValidationResultGlobalRef = $"global::Validly.{nameof(IInternalValidationResult)}";
 	public const string ValidationResultHelperGlobalRef = $"global::Validly.Utils.{nameof(ValidationResultHelper)}";
 	public const string ServiceProviderGlobalRef = $"global::System.{nameof(IServiceProvider)}";
+	public const string ValidationMessageGlobalRef = $"global::Validly.{nameof(ValidationMessage)}";
 
 	public const string ValidationResultName = "ValidationResult";
 	public const string ExtendableValidationResultName = "ExtendableValidationResult";

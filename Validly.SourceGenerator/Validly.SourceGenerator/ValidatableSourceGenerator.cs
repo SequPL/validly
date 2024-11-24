@@ -130,14 +130,18 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			+ "#nullable enable"
 			+ Environment.NewLine
 			+ Environment.NewLine
-			+ $"namespace {properties.Object.Namespace}{Environment.NewLine}{{{Environment.NewLine}"
+			+ (
+				properties.Object.Namespace is null
+					? string.Empty
+					: $"namespace {properties.Object.Namespace}{Environment.NewLine}{{{Environment.NewLine}"
+			)
 			+ validatorClassBuilder.Build().Indent()
 			+ Environment.NewLine
 			+ rulesClassBuilder.Build().Indent()
 			+ Environment.NewLine
 			+ customValidationsInterfaceBuilder.Build().Indent()
 			+ Environment.NewLine
-			+ "}";
+			+ (properties.Object.Namespace is null ? string.Empty : "}");
 
 		context.AddSource($"{properties.Object.Name}.Validator.g.cs", SourceText.From(sourceText, Encoding.UTF8));
 	}

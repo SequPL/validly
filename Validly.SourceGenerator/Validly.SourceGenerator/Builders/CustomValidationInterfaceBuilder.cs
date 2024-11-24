@@ -84,7 +84,7 @@ internal class CustomValidationInterfaceBuilder
 				/// <summary>
 				/// Custom validation method for property '{properties.PropertyName}'
 				/// </summary>
-				IEnumerable<ValidationMessage> Validate{properties.PropertyName}();
+				IEnumerable<{Consts.ValidationMessageGlobalRef}> Validate{properties.PropertyName}();
 				""".Indent()
 			);
 

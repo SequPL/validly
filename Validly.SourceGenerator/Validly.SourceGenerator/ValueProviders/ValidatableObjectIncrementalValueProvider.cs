@@ -55,7 +55,9 @@ internal static class ValidatableObjectIncrementalValueProvider
 			ClassOrRecordKeyword = typeSymbol.IsRecord ? "record" : "class",
 			Accessibility = typeSymbol.DeclaredAccessibility,
 			Name = typeSymbol.Name,
-			Namespace = typeSymbol.ContainingNamespace.ToString(),
+			Namespace = typeSymbol.ContainingNamespace.CanBeReferencedByName
+				? typeSymbol.ContainingNamespace.ToString()
+				: null,
 			Properties = new EquatableArray<PropertyProperties>(properties),
 			Methods = new EquatableArray<MethodProperties>(methods),
 			InheritsValidatableObject = inheritsValidatableObject,
@@ -136,7 +138,16 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 	private static UsingDirectiveSyntax[] GetUsings(TypeDeclarationSyntax targetNode)
 	{
-		var usings = targetNode.Parent?.Parent is CompilationUnitSyntax cus
+		int max = 5;
+		var target = targetNode.Parent;
+
+		while (max >= 0 && target is not null && target is not CompilationUnitSyntax)
+		{
+			target = target.Parent;
+			max--;
+		}
+
+		var usings = target is CompilationUnitSyntax cus
 			? cus.Usings.ToArray()
 			: Array.Empty<UsingDirectiveSyntax>();
 		return usings;

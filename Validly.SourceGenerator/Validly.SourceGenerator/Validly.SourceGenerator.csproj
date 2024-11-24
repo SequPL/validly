@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <IsPackable>false</IsPackable>
+        <IsPackable>true</IsPackable>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
 		<LangVersion>11</LangVersion>
@@ -13,7 +13,7 @@
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 
         <PackageId>Validly.SourceGenerator</PackageId>
-		<Version>1.0.0-rc.1</Version>
+		<Version>1.0.2</Version>
 		<Description>Source Generator for Validly validation library</Description>
     </PropertyGroup>
 
@@ -24,7 +24,7 @@
 
 	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Update=".\Properties\Validly.SourceGenerator.props" Pack="true" PackagePath="build" />
+		<None Update="Validly.SourceGenerator.props" Pack="true" PackagePath="build" />
 	</ItemGroup>
 
     <ItemGroup>
