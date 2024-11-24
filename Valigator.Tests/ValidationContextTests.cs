@@ -1,6 +1,3 @@
 namespace Valigator.Tests;
 
-public class ValidationContextTests
-{
-	
-}
+public class ValidationContextTests { }

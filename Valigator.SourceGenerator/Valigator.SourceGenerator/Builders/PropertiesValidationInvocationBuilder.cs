@@ -98,17 +98,23 @@ internal class PropertiesValidationInvocationBuilder
 			)}}
 			{{string.Join(
 				Environment.NewLine,
+				propertyCalls.Voids.Select(call => $"{call.Call};")
+			)}}{{(propertyCalls.Voids.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
+				Environment.NewLine,
 				propertyCalls.Messages.Select(call => $"propertyResult.AddValidationMessage({call.Call});")
 			)}}{{earlyExitCheck}}{{(propertyCalls.Messages.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
 				Environment.NewLine,
 				propertyCalls.Validations.Select(call => $"propertyResult.AddValidationMessage({call.Call});")
-			)}}{{earlyExitCheck}}{{string.Join(
+			)}}{{earlyExitCheck}}{{(propertyCalls.Validations.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
 				Environment.NewLine,
 				propertyCalls.Enumerables.Select(call => $"propertyResult.AddValidationMessages({call.Call});")
-			)}}{{earlyExitCheck}}{{string.Join(
+			)}}{{earlyExitCheck}}{{(propertyCalls.Enumerables.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
+				Environment.NewLine,
+				propertyCalls.VoidTasks.Select(call => $"await {call.Call};")
+			)}}{{(propertyCalls.VoidTasks.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
 				Environment.NewLine,
 				propertyCalls.Tasks.Select(call => $"propertyResult.AddValidationMessages(await {call.Call});")
-			)}}{{earlyExitCheck}}{{string.Join(
+			)}}{{earlyExitCheck}}{{(propertyCalls.Tasks.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
 				Environment.NewLine,
 				propertyCalls.AsyncEnumerables.Select(call => $"await propertyResult.AddValidationMessages({call.Call});")
 			)}}{{earlyExitCheck}}

@@ -5,7 +5,7 @@ namespace Valigator;
 /// <summary>
 /// Represents the result of a validation
 /// </summary>
-public class ValidationResult : IDisposable
+public class ValidationResult : IDisposable, IInternalValidationResult
 {
 	private static readonly ValidationResult SuccessResult =
 		new(
@@ -122,6 +122,12 @@ public class ValidationResult : IDisposable
 	/// Success result
 	/// </summary>
 	public static ValidationResult Success() => SuccessResult;
+
+	/// <summary>
+	/// Returns number of properties in this validation result
+	/// </summary>
+	/// <returns></returns>
+	int IInternalValidationResult.GetPropertiesCount() => PropertiesResultCount;
 
 	/// <summary>
 	/// Dispose

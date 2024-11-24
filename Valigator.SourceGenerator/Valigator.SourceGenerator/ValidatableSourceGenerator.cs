@@ -90,7 +90,11 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			|| (
 				(properties.Object.AfterValidateMethod?.ReturnTypeType ?? ReturnTypeType.None)
 				& ReturnTypeType.Awaitable
-			) != 0;
+			) != 0
+			// TODO: Can we handle this differently? How should we check if that type is async validator? For now, we force async behavior if there is any property of Validatable type
+			|| properties.Object.Properties.Any(prop => prop.PropertyIsOfValidatableType)
+			// TODO: Like above, we force async behavior if the object inherits from Validatable object
+			|| properties.Object.InheritsValidatableObject;
 
 		// Generate the validator part for the original object
 		// > public partial class Xxx : IValidatable, IInternalValidationInvoker { ... }
@@ -214,21 +218,97 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				.AppendLine();
 		}
 
+		var nestedValidations = new List<string>();
+		var nestedValidationsDispose = new List<string>();
+
+		foreach (var property in properties.Object.Properties)
+		{
+			if (!property.PropertyIsOfValidatableType)
+			{
+				continue;
+			}
+
+			nestedValidations.Add(
+				$"""
+				context.SetObject(this.{property.PropertyName});
+				var nestedValidationResult{nestedValidationsDispose.Count} = await (({Consts.InternalValidationInvokerGlobalRef})this.{property.PropertyName}).Validate(context, serviceProvider);
+				nestedPropertiesCount += (({Consts.InternalValidationResultGlobalRef})nestedValidationResult{nestedValidationsDispose.Count}).GetPropertiesCount();
+				"""
+			);
+
+			nestedValidationsDispose.Add(
+				$"""
+				result.CombineNested(nestedValidationResult{nestedValidationsDispose.Count}, "{property.PropertyName}");
+				nestedValidationResult{nestedValidationsDispose.Count}.Dispose();
+				"""
+			);
+		}
+
+		var hasNestedProperties = nestedValidations.Count != 0 || properties.Object.InheritsValidatableObject;
+
+		if (hasNestedProperties)
+		{
+			validateMethodFilePart.AppendLine("\tvar nestedPropertiesCount = 0;");
+
+			if (nestedValidations.Count != 0)
+			{
+				validateMethodFilePart.AppendLine(
+					$"""
+
+					{string.Join(Environment.NewLine, nestedValidations)}
+					context.SetObject(this);
+
+					""".Indent(2)
+				);
+			}
+
+			if (properties.Object.InheritsValidatableObject)
+			{
+				validateMethodFilePart.AppendLine(
+					$"""
+					// call BASE class' Validate()
+					var baseResult = await (({Consts.InternalValidationInvokerGlobalRef})base).Validate(validationContext, serviceProvider);
+					nestedPropertiesCount += (({Consts.InternalValidationResultGlobalRef})baseResult).GetPropertiesCount();
+					""".Indent()
+				);
+			}
+		}
+
 		// string globalMessages = "[]";
 		validateMethodFilePart.AppendLine(
-			$"\tvar result = {Consts.ExtendableValidationResultGlobalRef}.Create({properties.Object.Properties.Count});"
+			$"\tvar result = {Consts.ExtendableValidationResultGlobalRef}.Create({properties.Object.Properties.Count}{(hasNestedProperties ? " + nestedPropertiesCount" : string.Empty)});"
 		);
+
+		if (nestedValidations.Count != 0)
+		{
+			validateMethodFilePart.AppendLine(
+				$"""
+
+				// Dispose nested validation results
+				{string.Join(Environment.NewLine, nestedValidationsDispose)}
+				""".Indent(2)
+			);
+		}
 
 		if (properties.Object.InheritsValidatableObject)
 		{
-			// TODO: Support async
-			validateMethodFilePart
-				.AppendLine("\t// call BASE class' Validate()")
-				.AppendLine(
-					$"\tvar baseResult = (({Consts.InternalValidationInvokerGlobalRef})base).Validate(validationContext, serviceProvider).Result;"
-				)
-				.AppendLine("\tresult.AddGlobalMessages(baseResult.Global);")
-				.AppendLine();
+			validateMethodFilePart.AppendLine(
+				"""
+				result.Combine(baseResult);
+				baseResult.Dispose();
+				""".Indent(2)
+			);
+			// validateMethodFilePart
+			// 	.AppendLine("\t// call BASE class' Validate()")
+			// 	.AppendLine(
+			// 		$"\tvar baseResult = await (({Consts.InternalValidationInvokerGlobalRef})base).Validate(validationContext, serviceProvider);"
+			// 	)
+			// 	.AppendLine("\tresult.AddGlobalMessages(baseResult.Global);")
+			// 	.AppendLine()
+			// 	.AppendLine("\tforeach (var baseProp in baseResult.Properties) {")
+			// 	.AppendLine("\t\tresult.AddPropertyResult(baseProp);")
+			// 	.AppendLine("\t}")
+			// 	.AppendLine();
 		}
 
 		if (dependencies.HasDependencies)
@@ -255,14 +335,14 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		// Add INVOCATIONS
 		validateMethodFilePart.AppendLine(invocationBuilder.Build().Indent(2));
 
-		if (properties.Object.InheritsValidatableObject)
-		{
-			validateMethodFilePart
-				.AppendLine("\tforeach (var baseProp in baseResult.Properties) {")
-				.AppendLine("\t\tresult.AddPropertyResult(baseProp);")
-				.AppendLine("\t}")
-				.AppendLine();
-		}
+		// if (properties.Object.InheritsValidatableObject)
+		// {
+		// 	validateMethodFilePart
+		// 		.AppendLine("\tforeach (var baseProp in baseResult.Properties) {")
+		// 		.AppendLine("\t\tresult.AddPropertyResult(baseProp);")
+		// 		.AppendLine("\t}")
+		// 		.AppendLine();
+		// }
 
 		// AfterValidate hook
 		var afterValidateMethodReturns = AppendAfterValidateHook(properties.Object, validateMethodFilePart);
@@ -298,8 +378,15 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		var overrideVirtual = properties.Object.InheritsValidatableObject ? "override" : "virtual";
 
 		validateMethodFilePart
-			.AppendLine()
-			.AppendLine("/// <summary>Validate the object.</summary>")
+			.AppendLine(
+				"""
+
+				/// <summary>
+				/// Validate the object and get the result with error messages.
+				/// </summary>
+				/// <returns>Returns disposable ValidationResult.</returns>
+				""".Indent(1)
+			)
 			// > public virtual async ValueTask<ValidationResult> Validate(
 			.Append($"public {overrideVirtual} {asyncKeyword}{validateReturnType} Validate(")
 			.AppendIf($"{Consts.ServiceProviderGlobalRef} serviceProvider", dependencies.Services.Count > 0)

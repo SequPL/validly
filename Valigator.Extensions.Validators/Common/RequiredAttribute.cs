@@ -50,7 +50,6 @@ public class RequiredAttribute : Attribute
 	/// <returns></returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid<T>(T? value)
-		where T : notnull
 	{
 		return value is null ? RequiredMessage : null;
 	}

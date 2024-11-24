@@ -5,6 +5,11 @@ namespace Valigator.SourceGenerator.Builders;
 internal class CallsCollection
 {
 	/// <summary>
+	/// Calls with no return value; complexity 0
+	/// </summary>
+	public readonly List<ValidatorCallInfo> Voids = new();
+
+	/// <summary>
 	/// Calls with return type ValidationResult; complexity 1
 	/// </summary>
 	public readonly List<ValidatorCallInfo> ValidationResults = new();
@@ -25,6 +30,11 @@ internal class CallsCollection
 	public readonly List<ValidatorCallInfo> Enumerables = new();
 
 	/// <summary>
+	/// Calls with return type Task or ValueTask; complexity 4
+	/// </summary>
+	public readonly List<ValidatorCallInfo> VoidTasks = new();
+
+	/// <summary>
 	/// Calls with return type Task{T} or ValueTask{T}; complexity 4
 	/// </summary>
 	public readonly List<ValidatorCallInfo> Tasks = new();
@@ -37,11 +47,13 @@ internal class CallsCollection
 	public bool AnyAsync() => Tasks.Count != 0 || AsyncEnumerables.Count != 0;
 
 	public bool Any() =>
-		ValidationResults.Count != 0
+		Voids.Count != 0
+		|| ValidationResults.Count != 0
 		|| Messages.Count != 0
 		|| Validations.Count != 0
 		|| Enumerables.Count != 0
 		|| Tasks.Count != 0
+		|| VoidTasks.Count != 0
 		|| AsyncEnumerables.Count != 0;
 
 	/// <summary>
@@ -54,7 +66,14 @@ internal class CallsCollection
 	{
 		var validatorCall = new ValidatorCallInfo { Call = call };
 
-		if ((type & ReturnTypeType.TaskOrValueTask) != 0)
+		if (
+			(type & (ReturnTypeType.TaskOrValueTask | ReturnTypeType.Void))
+			== (ReturnTypeType.TaskOrValueTask | ReturnTypeType.Void)
+		)
+		{
+			VoidTasks.Add(validatorCall);
+		}
+		else if ((type & ReturnTypeType.TaskOrValueTask) != 0)
 		{
 			Tasks.Add(validatorCall);
 		}
@@ -77,6 +96,11 @@ internal class CallsCollection
 		else if ((type & ReturnTypeType.ValidationResult) != 0)
 		{
 			ValidationResults.Add(validatorCall);
+		}
+		// Keep the Void last, because it is combined with e.g. Tasks
+		else if ((type & ReturnTypeType.Void) != 0)
+		{
+			Voids.Add(validatorCall);
 		}
 
 		return this;

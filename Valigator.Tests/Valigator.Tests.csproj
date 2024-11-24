@@ -45,6 +45,8 @@
 	<ItemGroup>
 		<Folder Include="Validators\Numbers\"/>
 		<Folder Include="Validators\Strings\"/>
+<!--		<Compile Remove="**\*.cs" />-->
+<!--		<Compile Include="**\NestedValidatableObjectPropertyTests.cs" />-->
 	</ItemGroup>
 
 </Project>

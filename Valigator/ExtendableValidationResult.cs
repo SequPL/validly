@@ -114,12 +114,6 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	}
 
 	/// <summary>
-	/// Returns number of properties in this validation result
-	/// </summary>
-	/// <returns></returns>
-	public int GetPropertiesCount() => PropertiesResultCount;
-
-	/// <summary>
 	/// Add a global message to the validation result
 	/// </summary>
 	/// <param name="message"></param>
@@ -189,6 +183,36 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 		for (int index = 0; index < result.PropertiesResultCount; index++)
 		{
 			PropertyValidationResult propertyResult = result.PropertiesResult[index];
+			result.PropertiesResult[index] = null!;
+			AddPropertyResultToArray(propertyResult);
+		}
+
+		// Reset count
+		result.PropertiesResultCount = 0;
+	}
+
+	/// <summary>
+	/// Combine results. Global messages and property results are added to the current result.
+	/// </summary>
+	/// <param name="result"></param>
+	/// <param name="propertyName">Name of the property from which the result comes from.</param>
+	public void CombineNested(ValidationResult result, string propertyName)
+	{
+		// POP all messages from the result and add them to the current result
+		for (int index = 0; index < result.GlobalMessagesCount; index++)
+		{
+			ValidationMessage message = result.GlobalMessages[index];
+			AddGlobalMessageToArray(message);
+		}
+
+		// Reset count
+		result.GlobalMessagesCount = 0;
+
+		// POP all properties from the result and add them to the current result
+		for (int index = 0; index < result.PropertiesResultCount; index++)
+		{
+			PropertyValidationResult propertyResult = result.PropertiesResult[index];
+			((IInternalPropertyValidationResult)propertyResult).AsNestedPropertyValidationResult(propertyName);
 			result.PropertiesResult[index] = null!;
 			AddPropertyResultToArray(propertyResult);
 		}

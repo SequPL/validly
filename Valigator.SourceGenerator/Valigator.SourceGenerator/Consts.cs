@@ -25,6 +25,7 @@ internal static class Consts
 	public const string PropertyValidationResultGlobalRef = $"global::Valigator.{nameof(PropertyValidationResult)}";
 	public const string ValidationContextGlobalRef = $"global::Valigator.{nameof(ValidationContext)}";
 	public const string ExtendableValidationResultGlobalRef = $"global::Valigator.{nameof(ExtendableValidationResult)}";
+	public const string InternalValidationResultGlobalRef = $"global::Valigator.{nameof(IInternalValidationResult)}";
 	public const string ValidationResultHelperGlobalRef = $"global::Valigator.Utils.{nameof(ValidationResultHelper)}";
 	public const string ServiceProviderGlobalRef = $"global::System.{nameof(IServiceProvider)}";
 
