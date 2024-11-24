@@ -1,3 +1,4 @@
+using Valigator.SourceGenerator.Utils;
 using Valigator.SourceGenerator.Utils.Mapping;
 
 namespace Valigator.SourceGenerator.Builders;
@@ -60,11 +61,12 @@ internal class CustomValidationInterfaceBuilder
 
 			_customValidationMethods.Add(
 				$"""
+
 				/// <summary>
 				/// Custom validation method for property '{properties.PropertyName}'
 				/// </summary>
 				{returnType} Validate{properties.PropertyName}({string.Join(", ", dependencies)});
-				"""
+				""".Indent()
 			);
 
 			// Add CALL
@@ -78,11 +80,12 @@ internal class CustomValidationInterfaceBuilder
 		{
 			_customValidationMethods.Add(
 				$"""
+
 				/// <summary>
 				/// Custom validation method for property '{properties.PropertyName}'
 				/// </summary>
 				IEnumerable<ValidationMessage> Validate{properties.PropertyName}();
-				"""
+				""".Indent()
 			);
 
 			// Add CALL

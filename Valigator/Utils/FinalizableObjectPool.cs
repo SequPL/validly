@@ -75,7 +75,7 @@ internal static class FinalizableObjectPool
 	{
 		return new FinalizableObjectPool<TItem>(
 			policy ?? new ResettablePooledObjectPolicy<TItem>(),
-			ValigatorOptions.ObjectPoolSize
+			ValidlyOptions.ObjectPoolSize
 		);
 	}
 }

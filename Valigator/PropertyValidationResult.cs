@@ -77,7 +77,7 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 		_disposed = false;
 		_propertyPath = propertyPath;
 		_propertyDisplayName = propertyPath;
-		_messagesArray = ValidationMessagePool.Rent(ValigatorOptions.PropertyMessagesPoolSize);
+		_messagesArray = ValidationMessagePool.Rent(ValidlyOptions.PropertyMessagesPoolSize);
 	}
 
 	private void Reset(string propertyPath, string propertyDisplayName)
@@ -85,7 +85,7 @@ public class PropertyValidationResult : IInternalPropertyValidationResult, IDisp
 		_disposed = false;
 		_propertyPath = propertyPath;
 		_propertyDisplayName = propertyDisplayName;
-		_messagesArray = ValidationMessagePool.Rent(ValigatorOptions.PropertyMessagesPoolSize);
+		_messagesArray = ValidationMessagePool.Rent(ValidlyOptions.PropertyMessagesPoolSize);
 	}
 
 	private IReadOnlyList<ValidationMessage> GetMessages()

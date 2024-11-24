@@ -5,7 +5,6 @@ namespace Valigator.Extensions.Validators.Strings;
 
 /// <summary>
 /// Validator that checks if the length of a string does not exceed a specified maximum length.
-/// This validator is typically used to ensure that a property value, if it is a string, has a length within the allowed limit.
 /// </summary>
 [Validator]
 [AttributeUsage(AttributeTargets.Property)]

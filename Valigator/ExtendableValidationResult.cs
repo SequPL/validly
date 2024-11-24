@@ -50,7 +50,7 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	private void Reset(int propertiesCount)
 	{
 		_disposed = false;
-		GlobalMessages = GlobalMessagePool.Rent(ValigatorOptions.GlobalMessagesPoolSize);
+		GlobalMessages = GlobalMessagePool.Rent(ValidlyOptions.GlobalMessagesPoolSize);
 		PropertiesResult = PropertyValidationResultPool.Rent(propertiesCount);
 	}
 
@@ -114,6 +114,12 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	}
 
 	/// <summary>
+	/// Returns number of properties in this validation result
+	/// </summary>
+	/// <returns></returns>
+	public int GetPropertiesCount() => PropertiesResultCount;
+
+	/// <summary>
 	/// Add a global message to the validation result
 	/// </summary>
 	/// <param name="message"></param>
@@ -161,6 +167,34 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	{
 		AddPropertyResultToArray(propertyResult);
 		return this;
+	}
+
+	/// <summary>
+	/// Combine results. Global messages and property results are added to the current result.
+	/// </summary>
+	/// <param name="result"></param>
+	public void Combine(ValidationResult result)
+	{
+		// POP all messages from the result and add them to the current result
+		for (int index = 0; index < result.GlobalMessagesCount; index++)
+		{
+			ValidationMessage message = result.GlobalMessages[index];
+			AddGlobalMessageToArray(message);
+		}
+
+		// Reset count
+		result.GlobalMessagesCount = 0;
+
+		// POP all properties from the result and add them to the current result
+		for (int index = 0; index < result.PropertiesResultCount; index++)
+		{
+			PropertyValidationResult propertyResult = result.PropertiesResult[index];
+			result.PropertiesResult[index] = null!;
+			AddPropertyResultToArray(propertyResult);
+		}
+
+		// Reset count
+		result.PropertiesResultCount = 0;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

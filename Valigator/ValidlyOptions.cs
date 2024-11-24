@@ -3,7 +3,7 @@ namespace Valigator;
 /// <summary>
 /// Configuration
 /// </summary>
-public static class ValigatorOptions
+public static class ValidlyOptions
 {
 	/// <summary>
 	/// Size of the ArrayPool for <see cref="ValidationResult.Global"/> message collection
@@ -41,7 +41,7 @@ public class OptionsBuilder
 	/// <returns></returns>
 	public OptionsBuilder WithGlobalMessagesPoolSize(int size)
 	{
-		ValigatorOptions.GlobalMessagesPoolSize = size;
+		ValidlyOptions.GlobalMessagesPoolSize = size;
 		return this;
 	}
 
@@ -52,7 +52,7 @@ public class OptionsBuilder
 	/// <returns></returns>
 	public OptionsBuilder WithPropertyMessagesPoolSize(int size)
 	{
-		ValigatorOptions.PropertyMessagesPoolSize = size;
+		ValidlyOptions.PropertyMessagesPoolSize = size;
 		return this;
 	}
 
@@ -63,7 +63,7 @@ public class OptionsBuilder
 	/// <returns></returns>
 	public OptionsBuilder WithObjectPoolSize(int size)
 	{
-		ValigatorOptions.ObjectPoolSize = size;
+		ValidlyOptions.ObjectPoolSize = size;
 		return this;
 	}
 }

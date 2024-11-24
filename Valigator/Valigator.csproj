@@ -4,6 +4,7 @@
 		<PackageId>Valigator</PackageId>
 		<Version>1.0.0</Version>
 		<Description>Powerful, efficient, and highly customizable validation library for .NET, leveraging the capabilities of C# Source Generators to provide compile-time validation logic generation.</Description>
+		<PackageTags>validly valid validator validation annotations attributes source-generator</PackageTags>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
