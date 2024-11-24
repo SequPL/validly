@@ -10,8 +10,8 @@
 		<LangVersion>12</LangVersion>
 
 		<Authors>Roman Jámbor</Authors>
-		<PackageReadmeFile>assets/README.md</PackageReadmeFile>
-		<PackageLicenseFile>assets/LICENSE</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<RepositoryUrl>https://github.com/Hookyns/validly</RepositoryUrl>
 
 		<ImplicitUsings>enable</ImplicitUsings>

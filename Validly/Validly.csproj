@@ -19,8 +19,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="assets/README.md" Pack="true" PackagePath=""/>
-		<None Include="assets/LICENSE" Pack="true" PackagePath=""/>
+		<None Include="assets\README.md" Pack="true" PackagePath="" />
+		<None Include="assets\LICENSE" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 </Project>

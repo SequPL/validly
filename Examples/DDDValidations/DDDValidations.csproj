@@ -8,10 +8,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Validly.Extensions.Validators\Validly.Extensions.Validators.csproj"/>
-		<ProjectReference Include="..\..\Validly.SourceGenerator\Validly.SourceGenerator\Validly.SourceGenerator.csproj"
-						  OutputItemType="Analyzer"
-						  ReferenceOutputAssembly="false"/>
+	  <PackageReference Include="Validly" Version="1.0.0" />
+	  <PackageReference Include="Validly.Extensions.Validators" Version="1.0.0" />
+	  <PackageReference Include="Validly.SourceGenerator" Version="1.0.1" />
 	</ItemGroup>
 
 </Project>
