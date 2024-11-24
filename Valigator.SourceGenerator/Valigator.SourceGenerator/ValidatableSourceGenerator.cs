@@ -274,7 +274,6 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			}
 		}
 
-		// string globalMessages = "[]";
 		validateMethodFilePart.AppendLine(
 			$"\tvar result = {Consts.ExtendableValidationResultGlobalRef}.Create({properties.Object.Properties.Count}{(hasNestedProperties ? " + nestedPropertiesCount" : string.Empty)});"
 		);
@@ -298,17 +297,6 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				baseResult.Dispose();
 				""".Indent(2)
 			);
-			// validateMethodFilePart
-			// 	.AppendLine("\t// call BASE class' Validate()")
-			// 	.AppendLine(
-			// 		$"\tvar baseResult = await (({Consts.InternalValidationInvokerGlobalRef})base).Validate(validationContext, serviceProvider);"
-			// 	)
-			// 	.AppendLine("\tresult.AddGlobalMessages(baseResult.Global);")
-			// 	.AppendLine()
-			// 	.AppendLine("\tforeach (var baseProp in baseResult.Properties) {")
-			// 	.AppendLine("\t\tresult.AddPropertyResult(baseProp);")
-			// 	.AppendLine("\t}")
-			// 	.AppendLine();
 		}
 
 		if (dependencies.HasDependencies)
@@ -334,15 +322,6 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 		// Add INVOCATIONS
 		validateMethodFilePart.AppendLine(invocationBuilder.Build().Indent(2));
-
-		// if (properties.Object.InheritsValidatableObject)
-		// {
-		// 	validateMethodFilePart
-		// 		.AppendLine("\tforeach (var baseProp in baseResult.Properties) {")
-		// 		.AppendLine("\t\tresult.AddPropertyResult(baseProp);")
-		// 		.AppendLine("\t}")
-		// 		.AppendLine();
-		// }
 
 		// AfterValidate hook
 		var afterValidateMethodReturns = AppendAfterValidateHook(properties.Object, validateMethodFilePart);
