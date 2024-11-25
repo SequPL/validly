@@ -97,10 +97,14 @@ Separating validations from the model may even be considered an anti-pattern or 
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
-  <tr>
-    <td align="center"><a href="https://bitbucket.org/HookCZ/"><img src="https://avatars.githubusercontent.com/u/2551259?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Roman Jámbor</b></sub></a><br /><a href="https://github.com/Hookyns/tst-reflect/commits?author=Hookyns" title="Code">💻</a> <a href="#maintenance-Hookyns" title="Maintenance">🚧</a> <a href="https://github.com/Hookyns/tst-reflect/commits?author=Hookyns" title="Documentation">📖</a> <a href="https://github.com/Hookyns/tst-reflect/pulls?q=is%3Apr+reviewed-by%3AHookyns" title="Reviewed Pull Requests">👀</a> <a href="#example-Hookyns" title="Examples">💡</a> <a href="#ideas-Hookyns" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-Hookyns" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#question-Hookyns" title="Answering Questions">💬</a> <a href="https://github.com/Hookyns/tst-reflect/commits?author=Hookyns" title="Tests">⚠️</a></td>
-  </tr>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://bitbucket.org/HookCZ/"><img src="https://avatars.githubusercontent.com/u/2551259?v=4?s=100" width="100px;" alt="Roman Jámbor"/><br /><sub><b>Roman Jámbor</b></sub></a><br /><a href="https://github.com/Hookyns/validly/commits?author=Hookyns" title="Code">💻</a> <a href="#maintenance-Hookyns" title="Maintenance">🚧</a> <a href="https://github.com/Hookyns/validly/commits?author=Hookyns" title="Documentation">📖</a> <a href="https://github.com/Hookyns/validly/pulls?q=is%3Apr+reviewed-by%3AHookyns" title="Reviewed Pull Requests">👀</a> <a href="#example-Hookyns" title="Examples">💡</a> <a href="#ideas-Hookyns" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-Hookyns" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#question-Hookyns" title="Answering Questions">💬</a> <a href="https://github.com/Hookyns/validly/commits?author=Hookyns" title="Tests">⚠️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Whitepalko"><img src="https://avatars.githubusercontent.com/u/47061310?v=4?s=100" width="100px;" alt="Whitepalko"/><br /><sub><b>Whitepalko</b></sub></a><br /><a href="https://github.com/Hookyns/validly/commits?author=Whitepalko" title="Code">💻</a> <a href="#ideas-Whitepalko" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
 </table>
+
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 

@@ -26,8 +26,19 @@
         "question",
         "test"
       ]
+    },
+    {
+      "login": "Whitepalko",
+      "name": "Whitepalko",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47061310?v=4",
+      "profile": "https://github.com/Whitepalko",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs"
 }
