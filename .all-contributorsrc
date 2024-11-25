@@ -36,6 +36,15 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "TallasDev",
+      "name": "TallasDev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30439223?v=4",
+      "profile": "https://github.com/TallasDev",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
