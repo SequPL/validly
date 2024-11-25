@@ -45,6 +45,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "completezero",
+      "name": "completezero",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15210432?v=4",
+      "profile": "https://github.com/completezero",
+      "contributions": [
+        "test"
+      ]
     }
   ],
   "contributorsPerLine": 7,
