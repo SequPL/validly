@@ -10,6 +10,11 @@ assignees: Hookyns
 **Describe the bug**
 A clear and concise description of what the bug is.
 
+**Bug is related to**
+- [ ] Validation runtime
+- [ ] Source generator
+<!-- [x] for checked checkbox -->
+
 **To Reproduce**
 Steps to reproduce the behavior:
 1. Use '...'
