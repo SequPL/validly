@@ -18,4 +18,14 @@ public class ValidatableAttribute : Attribute
 	/// Disables auto validators for the class
 	/// </summary>
 	public bool NoAutoValidators { get; set; }
+
+	/// <summary>
+	/// Enables exit early for the class
+	/// </summary>
+	public bool UseExitEarly { get; set; }
+
+	/// <summary>
+	/// Disables exit early for the class
+	/// </summary>
+	public bool NoExitEarly { get; set; }
 }

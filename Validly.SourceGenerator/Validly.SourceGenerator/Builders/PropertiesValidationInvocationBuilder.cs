@@ -1,3 +1,4 @@
+using System.Text;
 using Validly.SourceGenerator.Dtos;
 using Validly.SourceGenerator.Utils.Mapping;
 
@@ -8,8 +9,8 @@ internal class PropertiesValidationInvocationBuilder
 	private static readonly string InvocationsDelimiter = $"{Environment.NewLine}{Environment.NewLine}";
 
 	private readonly string _ruleClassName;
-	private readonly ValidlyConfiguration _config;
 	private readonly DependenciesTracker _dependenciesTracker;
+	private readonly bool _exitEarly;
 
 	private readonly List<string> _invocations = new();
 
@@ -20,19 +21,20 @@ internal class PropertiesValidationInvocationBuilder
 
 	public PropertiesValidationInvocationBuilder(
 		string ruleClassName,
-		ValidlyConfiguration config,
-		DependenciesTracker dependenciesTracker
+		DependenciesTracker dependenciesTracker,
+		bool exitEarly
 	)
 	{
 		_ruleClassName = ruleClassName;
-		_config = config;
 		_dependenciesTracker = dependenciesTracker;
+		_exitEarly = exitEarly;
 	}
 
 	public void AddInvocationForProperty(
 		PropertyProperties properties,
 		IList<(AttributeProperties, ValidatorProperties)> validators,
-		CallsCollection propertyCalls
+		CallsCollection propertyCalls,
+		bool isAsync
 	)
 	{
 		string ruleName = $"{properties.PropertyName}Rule";
@@ -68,59 +70,113 @@ internal class PropertiesValidationInvocationBuilder
 			return;
 		}
 
-		var earlyExitCheck = _config.ExitEarly
-			? """
-
-				if (!propertyResult.IsSuccess)
-				{
-					result.AddPropertyResult(propertyResult);
-					return result;
-				}
-				"""
-			: string.Empty;
-
 		var propertyNameAndDisplayNameArgs =
 			properties.PropertyName == properties.DisplayName
 				? $"\"{properties.PropertyName}\""
 				: $"\"{properties.PropertyName}\", \"{properties.DisplayName}\"";
 
+		var sb = new StringBuilder();
+
+		// ValidationResults
+		if (propertyCalls.ValidationResults.Count != 0)
+		{
+			foreach (ValidatorCallInfo call in propertyCalls.ValidationResults)
+			{
+				sb.AppendLine(
+					$"""
+					var propertyValidationResult = {call.Call};
+					if (propertyValidationResult != null) return propertyValidationResult;
+					"""
+				);
+			}
+		}
+
+		var anyAsync = propertyCalls.AnyAsync() || isAsync;
+
+		var resultReturn = anyAsync
+			? $"new ValueTask<{Consts.ValidationResultGlobalRef}>(({Consts.ValidationResultGlobalRef})result)"
+			: $"({Consts.ValidationResultGlobalRef})result";
+
+		if (propertyCalls.Voids.Count != 0)
+		{
+			AppendSyncCalls(sb, propertyCalls.Voids, _exitEarly, resultReturn);
+		}
+
+		if (propertyCalls.Messages.Count != 0)
+		{
+			AppendSyncCalls(sb, propertyCalls.Messages, _exitEarly, resultReturn);
+		}
+
+		if (propertyCalls.Validations.Count != 0)
+		{
+			AppendSyncCalls(sb, propertyCalls.Validations, _exitEarly, resultReturn);
+		}
+
+		if (propertyCalls.Enumerables.Count != 0)
+		{
+			AppendSyncCalls(sb, propertyCalls.Enumerables, _exitEarly, resultReturn);
+		}
+
+		if (propertyCalls.Tasks.Count != 0)
+		{
+			foreach (ValidatorCallInfo call in propertyCalls.Tasks)
+			{
+				sb.AppendLine($"propertyResult.Add(await {call.Call});");
+
+				if (_exitEarly)
+				{
+					sb.AppendLine($"if (!propertyResult.IsSuccess) return ({Consts.ValidationResultGlobalRef})result;");
+				}
+			}
+		}
+
+		if (propertyCalls.VoidTasks.Count != 0)
+		{
+			foreach (ValidatorCallInfo call in propertyCalls.VoidTasks)
+			{
+				sb.AppendLine($"{call.Call};");
+			}
+		}
+
+		if (propertyCalls.AsyncEnumerables.Count != 0)
+		{
+			foreach (ValidatorCallInfo call in propertyCalls.AsyncEnumerables)
+			{
+				sb.AppendLine($"await propertyResult.AddAsync({call.Call});");
+
+				if (_exitEarly)
+				{
+					sb.AppendLine($"if (!propertyResult.IsSuccess) return ({Consts.ValidationResultGlobalRef})result;");
+				}
+			}
+		}
+
 		_invocations.Add(
 			$$"""
-			// Validate {{properties.PropertyName}} property
+			// Validate "{{properties.PropertyName}}" property
 			context.SetProperty({{propertyNameAndDisplayNameArgs}});
-			propertyResult = {{Consts.PropertyValidationResultGlobalRef}}.Create({{propertyNameAndDisplayNameArgs}});
-			{{string.Join(
-				Environment.NewLine,
-				propertyCalls.ValidationResults.Select(static call => $$"""
-					  var propertyValidationResult = propertyResult.AddValidationMessage({{call.Call}});
-					  if (propertyValidationResult != null) return propertyValidationResult;
-					  """)
-			)}}
-			{{string.Join(
-				Environment.NewLine,
-				propertyCalls.Voids.Select(call => $"{call.Call};")
-			)}}{{(propertyCalls.Voids.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
-				Environment.NewLine,
-				propertyCalls.Messages.Select(call => $"propertyResult.AddValidationMessage({call.Call});")
-			)}}{{earlyExitCheck}}{{(propertyCalls.Messages.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
-				Environment.NewLine,
-				propertyCalls.Validations.Select(call => $"propertyResult.AddValidationMessage({call.Call});")
-			)}}{{earlyExitCheck}}{{(propertyCalls.Validations.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
-				Environment.NewLine,
-				propertyCalls.Enumerables.Select(call => $"propertyResult.AddValidationMessages({call.Call});")
-			)}}{{earlyExitCheck}}{{(propertyCalls.Enumerables.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
-				Environment.NewLine,
-				propertyCalls.VoidTasks.Select(call => $"await {call.Call};")
-			)}}{{(propertyCalls.VoidTasks.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
-				Environment.NewLine,
-				propertyCalls.Tasks.Select(call => $"propertyResult.AddValidationMessages(await {call.Call});")
-			)}}{{earlyExitCheck}}{{(propertyCalls.Tasks.Count == 0 ? string.Empty : Environment.NewLine)}}{{string.Join(
-				Environment.NewLine,
-				propertyCalls.AsyncEnumerables.Select(call => $"await propertyResult.AddValidationMessages({call.Call});")
-			)}}{{earlyExitCheck}}
-			result.AddPropertyResult(propertyResult);
+			propertyResult = result.InitProperty({{propertyNameAndDisplayNameArgs}});
+			{{sb}}
 			"""
 		);
+	}
+
+	private static void AppendSyncCalls(
+		StringBuilder sb,
+		List<ValidatorCallInfo> calls,
+		bool exitEarly,
+		string resultReturn
+	)
+	{
+		foreach (ValidatorCallInfo call in calls)
+		{
+			sb.AppendLine($"propertyResult.Add({call.Call});");
+
+			if (exitEarly)
+			{
+				sb.AppendLine($"if (!propertyResult.IsSuccess) return {resultReturn};");
+			}
+		}
 	}
 
 	public string Build()
@@ -132,7 +188,7 @@ internal class PropertiesValidationInvocationBuilder
 
 		return $"""
 
-			{Consts.PropertyValidationResultGlobalRef} propertyResult;
+			{Consts.ExpandablePropertyValidationResultGlobalRef} propertyResult;
 
 			{string.Join(InvocationsDelimiter, _invocations)}
 

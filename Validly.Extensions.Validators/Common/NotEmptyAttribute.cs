@@ -19,11 +19,18 @@ public class NotEmptyAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(string? value)
 	{
-		if (string.IsNullOrWhiteSpace(value))
+		if (value is not null)
 		{
+			for (int i = 0; i < value.Length; i++)
+			{
+				if (value[i] is not ('\n' or '\r' or ' ' or '\t'))
+				{
+					return null;
+				}
+			}
+
 			return NotEmptyMessage;
 		}
 

@@ -10,5 +10,5 @@ public interface IValidatable
 	/// </summary>
 	/// <param name="serviceProvider"></param>
 	/// <returns></returns>
-	ValueTask<ValidationResult> Validate(IServiceProvider serviceProvider);
+	ValueTask<ValidationResult> ValidateAsync(IServiceProvider serviceProvider);
 }

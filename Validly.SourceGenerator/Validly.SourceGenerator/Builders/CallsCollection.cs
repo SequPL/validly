@@ -20,7 +20,7 @@ internal class CallsCollection
 	public readonly List<ValidatorCallInfo> Messages = new();
 
 	/// <summary>
-	/// Calls with return type Validation; complexity 2 (take more memory than just messages)
+	/// Calls with return type Validation; complexity 2 (takes a bit more memory than just messages)
 	/// </summary>
 	public readonly List<ValidatorCallInfo> Validations = new();
 
@@ -30,17 +30,17 @@ internal class CallsCollection
 	public readonly List<ValidatorCallInfo> Enumerables = new();
 
 	/// <summary>
-	/// Calls with return type Task or ValueTask; complexity 4
-	/// </summary>
-	public readonly List<ValidatorCallInfo> VoidTasks = new();
-
-	/// <summary>
 	/// Calls with return type Task{T} or ValueTask{T}; complexity 4
 	/// </summary>
 	public readonly List<ValidatorCallInfo> Tasks = new();
 
 	/// <summary>
-	///  with return type IAsyncEnumerable{T}; complexity 5 (like Tasks but with more memory and time)
+	/// Calls with return type Task or ValueTask; complexity 4
+	/// </summary>
+	public readonly List<ValidatorCallInfo> VoidTasks = new();
+
+	/// <summary>
+	/// Calls with return type IAsyncEnumerable{T}; complexity 5 (like Tasks but with more memory and time)
 	/// </summary>
 	public readonly List<ValidatorCallInfo> AsyncEnumerables = new();
 

@@ -63,7 +63,7 @@ public class BeforeValidateTests
 	{
 		var request = new BeforeValidateAsyncEnumerableReturnType { SomeValue = "test" };
 
-		using var result = await request.Validate();
+		using var result = await request.ValidateAsync();
 		Assert.False(result.IsSuccess);
 		Assert.Collection(result.Global, message => Assert.Equal(Message, message));
 	}

@@ -56,14 +56,7 @@ public class SimpleValidationLibrariesComparisonBenchmark
 	// [GlobalSetup]
 	// public void Setup() { }
 
-	[Benchmark]
-	public bool Validly()
-	{
-		using var result = NumberOfInvalidValues.Validate();
-		return result.IsSuccess;
-	}
-
-	[Benchmark]
+	[Benchmark(Baseline = true)]
 	public bool DataAnnotation() =>
 		Validator.TryValidateObject(NumberOfInvalidValues, new ValidationContext(NumberOfInvalidValues), null);
 
@@ -76,6 +69,13 @@ public class SimpleValidationLibrariesComparisonBenchmark
 				.Member(m => m.FirstName, m => m.Optional().NotEmpty())
 				.Member(m => m.LastName, m => m.Optional().NotEmpty())
 		);
+
+	[Benchmark]
+	public bool Validly()
+	{
+		using var result = NumberOfInvalidValues.Validate();
+		return result.IsSuccess;
+	}
 
 	[Benchmark(Description = "Validot (IsValid)")]
 	public bool ValidotIsValid()

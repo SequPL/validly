@@ -5,10 +5,9 @@ partial class DirectValidationResult
 {
 	public required string SomeValue { get; set; }
 
-	private ValidationResult AfterValidate(ExtendableValidationResult result)
+	private ValidationResult AfterValidate(ValidationResult _)
 	{
-		result.AddGlobalMessage(AfterValidateTests.Message);
-		return result;
+		return new ValidationResult([AfterValidateTests.Message]);
 	}
 }
 
@@ -64,7 +63,7 @@ public class AfterValidateTests
 	{
 		var request = new AsyncEnumerableReturnType { SomeValue = "test" };
 
-		using var result = await request.Validate();
+		using var result = await request.ValidateAsync();
 		Assert.False(result.IsSuccess);
 		Assert.Collection(result.Global, message => Assert.Equal(Message, message));
 	}

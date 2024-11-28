@@ -55,8 +55,8 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		).WithMethods(methods);
 		var invocationBuilder = new PropertiesValidationInvocationBuilder(
 			rulesClassName,
-			properties.Config,
-			dependencies
+			dependencies,
+			properties.Object.ExitEarly ?? properties.Config.ExitEarly
 		);
 
 		// Generate stuff for each property
@@ -72,6 +72,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 
 			ProcessValidatableProperty(
 				property,
+				properties.Object,
 				properties.Validators,
 				attributes,
 				rulesClassBuilder,
@@ -209,7 +210,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		var validateMethodFilePart = new SourceTextSectionBuilder()
 			.AppendLine("/// <inheritdoc />")
 			.Append($"{asyncKeyword}ValueTask<{Consts.ValidationResultGlobalRef}>")
-			.AppendLine($" {Consts.InternalValidationInvokerGlobalRef}.Validate(")
+			.AppendLine($" {Consts.InternalValidationInvokerGlobalRef}.ValidateAsync(")
 			.AppendLine($"\t{Consts.ValidationContextGlobalRef} context,")
 			.AppendLine($"\t{Consts.ServiceProviderGlobalRef}? serviceProvider")
 			.AppendLine(")")
@@ -235,7 +236,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			nestedValidations.Add(
 				$"""
 				context.SetObject(this.{property.PropertyName});
-				var nestedValidationResult{nestedValidationsDispose.Count} = await (({Consts.InternalValidationInvokerGlobalRef})this.{property.PropertyName}).Validate(context, serviceProvider);
+				var nestedValidationResult{nestedValidationsDispose.Count} = await (({Consts.InternalValidationInvokerGlobalRef})this.{property.PropertyName}).ValidateAsync(context, serviceProvider);
 				nestedPropertiesCount += (({Consts.InternalValidationResultGlobalRef})nestedValidationResult{nestedValidationsDispose.Count}).GetPropertiesCount();
 				"""
 			);
@@ -271,7 +272,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 				validateMethodFilePart.AppendLine(
 					$"""
 					// call BASE class' Validate()
-					var baseResult = await (({Consts.InternalValidationInvokerGlobalRef})base).Validate(validationContext, serviceProvider);
+					var baseResult = await (({Consts.InternalValidationInvokerGlobalRef})base).ValidateAsync(validationContext, serviceProvider);
 					nestedPropertiesCount += (({Consts.InternalValidationResultGlobalRef})baseResult).GetPropertiesCount();
 					""".Indent()
 				);
@@ -279,7 +280,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		}
 
 		validateMethodFilePart.AppendLine(
-			$"\tvar result = {Consts.ExtendableValidationResultGlobalRef}.Create({properties.Object.Properties.Count}{(hasNestedProperties ? " + nestedPropertiesCount" : string.Empty)});"
+			$"\tvar result = ({Consts.InternalValidationResultGlobalRef}){Consts.ExtendableValidationResultGlobalRef}.Create({properties.Object.Properties.Count}{(hasNestedProperties ? " + nestedPropertiesCount" : string.Empty)});"
 		);
 
 		if (nestedValidations.Count != 0)
@@ -308,8 +309,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			validateMethodFilePart
 				.AppendLine("\t// Required services")
 				.AppendLine("\tvar serviceValidationContext = context;")
-				.AppendLine("\tvar serviceExtendableValidationResult = result;")
-				.AppendLine("\tvar serviceValidationResult = result;")
+				.AppendLine($"\tvar serviceValidationResult = ({Consts.ValidationResultGlobalRef})result;")
 				.AppendLine(
 					string.Join(
 						Environment.NewLine,
@@ -322,20 +322,23 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		}
 
 		// BeforeValidate hook
-		AppendBeforeValidateHook(properties.Object, validateMethodFilePart, isAsync);
+		validateMethodFilePart.AppendLine(
+			CreateBeforeOrAfterValidateHook(properties.Object.BeforeValidateMethod).Indent(2)
+		);
 
 		// Add INVOCATIONS
 		validateMethodFilePart.AppendLine(invocationBuilder.Build().Indent(2));
 
 		// AfterValidate hook
-		var afterValidateMethodReturns = AppendAfterValidateHook(properties.Object, validateMethodFilePart);
+		validateMethodFilePart.AppendLine(
+			CreateBeforeOrAfterValidateHook(properties.Object.AfterValidateMethod).Indent(2)
+		);
 
-		if (!afterValidateMethodReturns)
-		{
-			validateMethodFilePart.AppendLine(
-				isAsync ? "\treturn result;" : $"\treturn new ValueTask<{Consts.ValidationResultGlobalRef}>(result);"
-			);
-		}
+		validateMethodFilePart.AppendLine(
+			isAsync
+				? $"\treturn ({Consts.ValidationResultGlobalRef})result;"
+				: $"\treturn new ValueTask<{Consts.ValidationResultGlobalRef}>(({Consts.ValidationResultGlobalRef})result);"
+		);
 
 		validateMethodFilePart.AppendLine("}");
 
@@ -343,12 +346,13 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		validateMethodFilePart
 			.AppendLine()
 			.AppendLine("/// <inheritdoc />")
-			.Append($"async ValueTask<{Consts.ValidationResultGlobalRef}>")
-			.Append($" {Consts.IValidatableGlobalRef}.Validate(IServiceProvider serviceProvider)")
+			.Append(
+				$"async ValueTask<{Consts.ValidationResultGlobalRef}> {Consts.IValidatableGlobalRef}.ValidateAsync(IServiceProvider serviceProvider)"
+			)
 			.AppendLine("{")
 			.AppendLine($"\tusing var validationContext = {Consts.ValidationContextGlobalRef}.Create(this);")
 			.AppendLine(
-				$"\treturn await (({Consts.InternalValidationInvokerGlobalRef})this).Validate(validationContext, serviceProvider);"
+				$"\treturn await (({Consts.InternalValidationInvokerGlobalRef})this).ValidateAsync(validationContext, serviceProvider);"
 			)
 			.AppendLine("}");
 
@@ -359,150 +363,138 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			? $"ValueTask<{Consts.ValidationResultGlobalRef}>"
 			: Consts.ValidationResultGlobalRef;
 		var overrideVirtual = properties.Object.InheritsValidatableObject ? "override" : "virtual";
+		var serviceProviderParameter =
+			dependencies.Services.Count > 0 ? $"{Consts.ServiceProviderGlobalRef} serviceProvider" : string.Empty;
 
-		validateMethodFilePart
-			.AppendLine(
-				"""
+		validateMethodFilePart.AppendLine(
+			$$"""
+
+			/// <summary>
+			/// Validate the object and get the result with error messages.
+			/// </summary>
+			/// <returns>Returns disposable ValidationResult.</returns>
+			public {{overrideVirtual}} async ValueTask<{{Consts.ValidationResultGlobalRef}}> ValidateAsync({{serviceProviderParameter}})
+			{
+				using var validationContext = {{Consts.ValidationContextGlobalRef}}.Create(this);
+				return await (({{Consts.InternalValidationInvokerGlobalRef}})this).ValidateAsync(validationContext, {{serviceProviderDep}});
+			}
+
+			""".Indent()
+		);
+
+		if (!isAsync)
+		{
+			validateMethodFilePart.AppendLine(
+				$$"""
 
 				/// <summary>
 				/// Validate the object and get the result with error messages.
 				/// </summary>
 				/// <returns>Returns disposable ValidationResult.</returns>
-				""".Indent(1)
-			)
-			// > public virtual async ValueTask<ValidationResult> Validate(
-			.Append($"public {overrideVirtual} {asyncKeyword}{validateReturnType} Validate(")
-			.AppendIf($"{Consts.ServiceProviderGlobalRef} serviceProvider", dependencies.Services.Count > 0)
-			.AppendLine(")")
-			.AppendLine("{")
-			.AppendLine($"\tusing var validationContext = {Consts.ValidationContextGlobalRef}.Create(this);")
-			.AppendLineIf(
-				$"\treturn await (({Consts.InternalValidationInvokerGlobalRef})this).Validate(validationContext, {serviceProviderDep});",
-				isAsync
-			)
-			.AppendLineIf(
-				$"\treturn (({Consts.InternalValidationInvokerGlobalRef})this).Validate(validationContext, {serviceProviderDep}).Result;",
-				!isAsync
-			)
-			.AppendLine("}");
+				public {{overrideVirtual}} {{validateReturnType}} Validate({{serviceProviderParameter}})
+				{
+					using var validationContext = {{Consts.ValidationContextGlobalRef}}.Create(this);
+					var task = (({{Consts.InternalValidationInvokerGlobalRef}})this).ValidateAsync(validationContext, {{serviceProviderDep}});
+
+					if (!task.IsCompletedSuccessfully)
+					{
+						#if NET7_0_OR_GREATER
+						throw new global::System.Diagnostics.UnreachableException("The task should be completed synchronously but was not.");
+						#else
+						throw new global::System.InvalidOperationException("The task should be completed synchronously but was not.");
+						#endif
+					}
+
+					return task.Result;
+				}
+
+				""".Indent()
+			);
+		}
 
 		return validateMethodFilePart;
 	}
 
-	private static void AppendBeforeValidateHook(
-		ObjectProperties objectProperties,
-		SourceTextSectionBuilder validateMethodSourceTextSection,
-		bool isAsync
+	private static string CreateBeforeOrAfterValidateHook(
+		MethodProperties? method
 	)
 	{
-		if (objectProperties.BeforeValidateMethod is null)
+		if (method is null)
 		{
-			return;
-		}
-
-		string awaitKeyword =
-			(objectProperties.BeforeValidateMethod.ReturnTypeType & ReturnTypeType.Awaitable) != 0
-				? "await "
-				: string.Empty;
-
-		var arguments = string.Join(
-			", ",
-			objectProperties.BeforeValidateMethod.Dependencies.Select(service => $"service{service}")
-		);
-
-		// VOID
-		if (
-			(objectProperties.BeforeValidateMethod.ReturnTypeType & ReturnTypeType.Void) != 0
-			&& objectProperties.BeforeValidateMethod.ReturnTypeGenericArgument is null
-		)
-		{
-			validateMethodSourceTextSection
-				.AppendLine("// BEFORE Validate()")
-				.AppendLine($"\t{awaitKeyword}BeforeValidate({arguments});")
-				.AppendLine();
-
-			return;
-		}
-
-		// ValidationResult
-		if ((objectProperties.BeforeValidateMethod.ReturnTypeType & ReturnTypeType.ValidationResult) != 0)
-		{
-			validateMethodSourceTextSection
-				.AppendLine("\t// BEFORE Validate()")
-				.AppendLine($"\tvar beforeValidate = {awaitKeyword}BeforeValidate({arguments});")
-				.AppendLine()
-				.AppendLine("\tif (beforeValidate is not null)")
-				.AppendLineIf("\t\treturn beforeValidate;", isAsync)
-				.AppendLineIf(
-					$"\t\treturn new ValueTask<{Consts.ValidationResultGlobalRef}>(beforeValidate);",
-					!isAsync
-				)
-				.AppendLine();
-
-			return;
-		}
-
-		// IEnumerable | IAsyncEnumerable
-		validateMethodSourceTextSection
-			.AppendLine("\t// BEFORE Validate()")
-			.AppendLine($"\t{awaitKeyword}result.AddGlobalMessages(BeforeValidate({arguments}));")
-			.AppendLine();
-	}
-
-	private static bool AppendAfterValidateHook(
-		ObjectProperties objectProperties,
-		SourceTextSectionBuilder validateMethodSourceTextSection
-	)
-	{
-		if (objectProperties.AfterValidateMethod is null)
-		{
-			return false;
+			return string.Empty;
 		}
 
 		var arguments = string.Join(
 			", ",
-			objectProperties.AfterValidateMethod.Dependencies.Select(service => $"service{service}")
+			method.Dependencies.Select(service => $"service{service}")
 		);
 
-		if ((objectProperties.AfterValidateMethod.ReturnTypeType & ReturnTypeType.Void) != 0)
+		if ((method.ReturnTypeType & ReturnTypeType.Void) != 0)
 		{
-			string afterValidateAwaitKeyword =
-				(objectProperties.AfterValidateMethod.ReturnTypeType & ReturnTypeType.Awaitable) != 0
-					? "await "
-					: string.Empty;
+			if ((method.ReturnTypeType & ReturnTypeType.Awaitable) != 0)
+			{
+				return $"""
 
-			validateMethodSourceTextSection
-				.AppendLine("\t// AFTER Validate()")
-				.AppendLine($"\t{afterValidateAwaitKeyword}AfterValidate({arguments});")
-				.AppendLine();
+					// Call {method.MethodName} hook
+					await {method.MethodName}({arguments});
+					""";
+			}
 
-			return false;
+			return $"""
+
+				// Call {method.MethodName} hook
+				{method.MethodName}({arguments});
+				""";
 		}
 
-		if ((objectProperties.AfterValidateMethod.ReturnTypeType & ReturnTypeType.AsyncEnumerable) != 0)
+		if ((method.ReturnTypeType & ReturnTypeType.ValidationResult) != 0)
 		{
-			validateMethodSourceTextSection.AppendLine(
-				$"\treturn await {Consts.ValidationResultHelperGlobalRef}.ReplaceOrAddMessages(result, AfterValidate({arguments}));"
-			);
-		}
-		else if ((objectProperties.AfterValidateMethod.ReturnTypeType & ReturnTypeType.Awaitable) != 0)
-		{
-			validateMethodSourceTextSection.AppendLine(
-				$"\treturn {Consts.ValidationResultHelperGlobalRef}.ReplaceOrAddMessages(result, await AfterValidate({arguments}));"
-			);
-		}
-		else
-		{
-			validateMethodSourceTextSection.AppendLine(
-				$"\treturn new ValueTask<{Consts.ValidationResultGlobalRef}>({Consts.ValidationResultHelperGlobalRef}.ReplaceOrAddMessages(result, AfterValidate({arguments})));"
-			);
+			if ((method.ReturnTypeType & ReturnTypeType.Awaitable) != 0)
+			{
+				return $"""
+
+				        // Call {method.MethodName} hook
+				        var resultOf{method.MethodName} = await {method.MethodName}({arguments});
+				        if (resultOf{method.MethodName} is not null) return resultOf{method.MethodName};
+				        """;
+			}
+
+			return $"""
+
+			        // Call {method.MethodName} hook
+			        var resultOf{method.MethodName} = {method.MethodName}({arguments});
+			        if (resultOf{method.MethodName} is not null) return new ValueTask<{Consts.ValidationResultGlobalRef}>(resultOf{method.MethodName});
+			        """;
 		}
 
-		return true;
+		if ((method.ReturnTypeType & ReturnTypeType.AsyncEnumerable) != 0)
+		{
+			return $"""
+
+		        // Call {method.MethodName} hook
+		        await result.AddAsync({method.MethodName}({arguments}));
+		        """;
+		}
+
+		if ((method.ReturnTypeType & ReturnTypeType.Awaitable) != 0)
+		{
+			return $"""
+
+		        // Call {method.MethodName} hook
+		        result.Add(await {method.MethodName}({arguments}));
+		        """;
+		}
+
+		return $"""
+
+	        // Call {method.MethodName} hook
+	        result.Add({method.MethodName}({arguments}));
+	        """;
 	}
 
 	private static void ProcessValidatableProperty(
 		PropertyProperties validatableProperty,
+		ObjectProperties propertiesObject,
 		EquatableArray<ValidatorProperties> validators,
 		List<AttributeProperties> attributes,
 		RulesClassBuilder rulesClassBuilder,
@@ -537,8 +529,12 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		// Generate RULE
 		rulesClassBuilder.AddRuleForProperty(validatableProperty, attributesWithValidators);
 
+		bool anyAsync = customValidationInterfaceBuilder.Calls.AnyAsync()
+			|| (propertiesObject.BeforeValidateMethod?.ReturnTypeType & ReturnTypeType.Awaitable) != 0
+			|| (propertiesObject.AfterValidateMethod?.ReturnTypeType & ReturnTypeType.Awaitable) != 0;
+
 		// Generate INVOCATION
-		invocationBuilder.AddInvocationForProperty(validatableProperty, attributesWithValidators, propertyCalls);
+		invocationBuilder.AddInvocationForProperty(validatableProperty, attributesWithValidators, propertyCalls, anyAsync);
 	}
 
 	private static void AddAutoValidators(
@@ -574,36 +570,5 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		{
 			attributes.Add(AttributeProperties.InEnum);
 		}
-	}
-
-	private static string CreateAddChain(List<(string Invocation, string Comment)> invocations)
-	{
-		return string.Join(
-			Environment.NewLine + "\t\t\t\t",
-			invocations.Select(invocation => $".AddValidationMessage({invocation.Invocation}) // {invocation.Comment}")
-		);
-	}
-
-	private static string CreateConcatenation(List<string> enumerators)
-	{
-		if (enumerators.Count == 0)
-		{
-			return string.Empty;
-		}
-
-		if (enumerators.Count == 1)
-		{
-			return enumerators[0];
-		}
-
-		var builder = new StringBuilder();
-		builder.AppendLine(enumerators[0]);
-
-		for (int i = 1; i < enumerators.Count; i++)
-		{
-			builder.AppendLine($"\t\t\t\t\t\t.Concat({enumerators[i].TrimStart()})");
-		}
-
-		return builder.ToString();
 	}
 }

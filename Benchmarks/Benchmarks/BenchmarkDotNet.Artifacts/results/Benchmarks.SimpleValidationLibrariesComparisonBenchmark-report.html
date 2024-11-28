@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>Benchmarks.SimpleValidationLibrariesComparisonBenchmark-20241122-125329</title>
+<title>Benchmarks.SimpleValidationLibrariesComparisonBenchmark-20241128-014440</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -14,48 +14,32 @@
 <body>
 <pre><code>
 BenchmarkDotNet v0.14.0, Windows 11 (10.0.26100.2314)
-Unknown processor
+AMD Ryzen 7 PRO 8840HS w/ Radeon 780M Graphics, 1 CPU, 16 logical and 8 physical cores
 .NET SDK 8.0.404
-  [Host]               : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
-  .NET 8.0             : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
-  .NET Framework 4.7.2 : .NET Framework 4.8.1 (4.8.9282.0), X64 RyuJIT VectorSize=256
+  [Host]   : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
+  .NET 8.0 : .NET 8.0.11 (8.0.1124.51707), X64 RyuJIT AVX-512F+CD+BW+DQ+VL+VBMI
 </code></pre>
-<pre><code>MaxIterationCount=20
+<pre><code>Job=.NET 8.0  Runtime=.NET 8.0  MaxIterationCount=20  
 </code></pre>
 
 <table>
-<thead><tr><th>Method        </th><th>Job           </th><th>Runtime       </th><th>NumberOfInvalidValues</th><th>Mean  </th><th>Error</th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Gen1</th><th>Gen2</th><th>Allocated</th><th>Alloc Ratio</th>
+<thead><tr><th>Method        </th><th>NumberOfInvalidValues</th><th>Mean </th><th>Error</th><th>StdDev</th><th>Median</th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Gen1</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>Validly</td><td>.NET 8.0</td><td>.NET 8.0</td><td>all</td><td>395.22 ns</td><td>29.521 ns</td><td>32.812 ns</td><td>0.67</td><td>0.07</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.00</td>
-</tr><tr><td>Validly</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>all</td><td>592.47 ns</td><td>31.381 ns</td><td>34.879 ns</td><td>1.00</td><td>0.08</td><td>0.0105</td><td>0.0048</td><td>0.0010</td><td>63 B</td><td>1.00</td>
-</tr><tr><td>DataAnnotation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>all</td><td>1,656.12 ns</td><td>102.219 ns</td><td>113.616 ns</td><td>0.25</td><td>0.02</td><td>0.3834</td><td>0.0019</td><td>-</td><td>3208 B</td><td>0.50</td>
-</tr><tr><td>DataAnnotation</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>all</td><td>6,506.08 ns</td><td>198.577 ns</td><td>228.682 ns</td><td>1.00</td><td>0.05</td><td>1.0071</td><td>0.0076</td><td>-</td><td>6371 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>all</td><td>56.72 ns</td><td>1.104 ns</td><td>1.033 ns</td><td>0.45</td><td>0.01</td><td>0.0057</td><td>-</td><td>-</td><td>48 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>all</td><td>124.87 ns</td><td>2.459 ns</td><td>2.415 ns</td><td>1.00</td><td>0.03</td><td>0.0076</td><td>-</td><td>-</td><td>48 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>all</td><td>1,146.42 ns</td><td>88.287 ns</td><td>101.671 ns</td><td>0.62</td><td>0.06</td><td>0.3948</td><td>0.0038</td><td>-</td><td>3304 B</td><td>0.98</td>
-</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>all</td><td>1,841.58 ns</td><td>80.004 ns</td><td>92.132 ns</td><td>1.00</td><td>0.07</td><td>0.5379</td><td>0.0038</td><td>-</td><td>3386 B</td><td>1.00</td>
-</tr><tr><td>FluentValidation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>all</td><td>7,049.77 ns</td><td>173.199 ns</td><td>185.321 ns</td><td>0.56</td><td>0.03</td><td>1.6632</td><td>0.0229</td><td>-</td><td>13928 B</td><td>0.77</td>
-</tr><tr><td>FluentValidation</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>all</td><td>12,613.47 ns</td><td>507.596 ns</td><td>543.122 ns</td><td>1.00</td><td>0.06</td><td>2.8381</td><td>0.0305</td><td>-</td><td>17997 B</td><td>1.00</td>
-</tr><tr><td>Validly</td><td>.NET 8.0</td><td>.NET 8.0</td><td>none</td><td>411.79 ns</td><td>6.209 ns</td><td>5.504 ns</td><td>0.70</td><td>0.04</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.00</td>
-</tr><tr><td>Validly</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>none</td><td>586.99 ns</td><td>33.335 ns</td><td>37.051 ns</td><td>1.00</td><td>0.09</td><td>0.0105</td><td>0.0048</td><td>0.0010</td><td>63 B</td><td>1.00</td>
-</tr><tr><td>DataAnnotation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>none</td><td>1,847.46 ns</td><td>43.855 ns</td><td>45.036 ns</td><td>0.31</td><td>0.01</td><td>0.3834</td><td>0.0019</td><td>-</td><td>3208 B</td><td>0.50</td>
-</tr><tr><td>DataAnnotation</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>none</td><td>5,941.03 ns</td><td>73.036 ns</td><td>60.988 ns</td><td>1.00</td><td>0.01</td><td>1.0071</td><td>0.0076</td><td>-</td><td>6371 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>none</td><td>287.03 ns</td><td>5.329 ns</td><td>5.472 ns</td><td>0.43</td><td>0.03</td><td>0.0057</td><td>-</td><td>-</td><td>48 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>none</td><td>675.05 ns</td><td>44.224 ns</td><td>50.929 ns</td><td>1.01</td><td>0.11</td><td>0.0076</td><td>-</td><td>-</td><td>48 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>none</td><td>819.89 ns</td><td>47.457 ns</td><td>54.652 ns</td><td>0.55</td><td>0.04</td><td>0.2842</td><td>0.0019</td><td>-</td><td>2384 B</td><td>0.99</td>
-</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>none</td><td>1,484.18 ns</td><td>36.943 ns</td><td>42.543 ns</td><td>1.00</td><td>0.04</td><td>0.3834</td><td>0.0019</td><td>-</td><td>2415 B</td><td>1.00</td>
-</tr><tr><td>FluentValidation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>none</td><td>798.46 ns</td><td>15.327 ns</td><td>15.054 ns</td><td>0.52</td><td>0.01</td><td>0.0906</td><td>-</td><td>-</td><td>760 B</td><td>0.98</td>
-</tr><tr><td>FluentValidation</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>none</td><td>1,533.92 ns</td><td>18.224 ns</td><td>15.218 ns</td><td>1.00</td><td>0.01</td><td>0.1221</td><td>-</td><td>-</td><td>778 B</td><td>1.00</td>
-</tr><tr><td>Validly</td><td>.NET 8.0</td><td>.NET 8.0</td><td>one</td><td>403.05 ns</td><td>8.139 ns</td><td>9.046 ns</td><td>0.69</td><td>0.02</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.00</td>
-</tr><tr><td>Validly</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>one</td><td>586.39 ns</td><td>11.231 ns</td><td>12.017 ns</td><td>1.00</td><td>0.03</td><td>0.0105</td><td>0.0048</td><td>0.0010</td><td>63 B</td><td>1.00</td>
-</tr><tr><td>DataAnnotation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>one</td><td>1,560.35 ns</td><td>83.501 ns</td><td>96.160 ns</td><td>0.31</td><td>0.02</td><td>0.3357</td><td>-</td><td>-</td><td>2808 B</td><td>0.52</td>
-</tr><tr><td>DataAnnotation</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>one</td><td>5,004.08 ns</td><td>111.559 ns</td><td>123.998 ns</td><td>1.00</td><td>0.03</td><td>0.8621</td><td>0.0076</td><td>-</td><td>5440 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>one</td><td>63.82 ns</td><td>1.222 ns</td><td>1.143 ns</td><td>0.53</td><td>0.01</td><td>0.0057</td><td>-</td><td>-</td><td>48 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>one</td><td>120.73 ns</td><td>2.168 ns</td><td>2.409 ns</td><td>1.00</td><td>0.03</td><td>0.0076</td><td>-</td><td>-</td><td>48 B</td><td>1.00</td>
-</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>one</td><td>877.64 ns</td><td>54.443 ns</td><td>55.909 ns</td><td>0.60</td><td>0.04</td><td>0.3271</td><td>0.0029</td><td>-</td><td>2736 B</td><td>0.99</td>
-</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>one</td><td>1,451.14 ns</td><td>28.349 ns</td><td>25.131 ns</td><td>1.00</td><td>0.02</td><td>0.4406</td><td>0.0038</td><td>-</td><td>2776 B</td><td>1.00</td>
-</tr><tr><td>FluentValidation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>one</td><td>2,885.13 ns</td><td>56.387 ns</td><td>49.986 ns</td><td>0.57</td><td>0.01</td><td>0.6523</td><td>0.0038</td><td>-</td><td>5456 B</td><td>0.80</td>
-</tr><tr><td>FluentValidation</td><td>.NET Framework 4.7.2</td><td>.NET Framework 4.7.2</td><td>one</td><td>5,087.52 ns</td><td>76.130 ns</td><td>71.212 ns</td><td>1.00</td><td>0.02</td><td>1.0834</td><td>0.0076</td><td>-</td><td>6836 B</td><td>1.00</td>
+</thead><tbody><tr><td>DataAnnotation</td><td>all</td><td>1,667.16 ns</td><td>49.264 ns</td><td>52.712 ns</td><td>1,652.16 ns</td><td>8.78</td><td>0.61</td><td>0.3834</td><td>0.0019</td><td>3208 B</td><td>NA</td>
+</tr><tr><td>Validly</td><td>all</td><td>190.63 ns</td><td>10.146 ns</td><td>11.684 ns</td><td>196.03 ns</td><td>1.00</td><td>0.09</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>all</td><td>56.41 ns</td><td>0.315 ns</td><td>0.263 ns</td><td>56.40 ns</td><td>0.30</td><td>0.02</td><td>0.0057</td><td>-</td><td>48 B</td><td>NA</td>
+</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>all</td><td>1,056.36 ns</td><td>82.549 ns</td><td>88.326 ns</td><td>1,048.69 ns</td><td>5.56</td><td>0.57</td><td>0.3948</td><td>0.0038</td><td>3304 B</td><td>NA</td>
+</tr><tr><td>FluentValidation</td><td>all</td><td>5,948.46 ns</td><td>113.619 ns</td><td>106.279 ns</td><td>5,927.95 ns</td><td>31.32</td><td>2.02</td><td>1.6632</td><td>0.0229</td><td>13928 B</td><td>NA</td>
+</tr><tr><td>DataAnnotation</td><td>none</td><td>1,677.16 ns</td><td>30.304 ns</td><td>25.305 ns</td><td>1,678.70 ns</td><td>7.08</td><td>0.20</td><td>0.3834</td><td>0.0019</td><td>3208 B</td><td>NA</td>
+</tr><tr><td>Validly</td><td>none</td><td>237.16 ns</td><td>5.687 ns</td><td>6.085 ns</td><td>235.36 ns</td><td>1.00</td><td>0.03</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>none</td><td>316.64 ns</td><td>1.869 ns</td><td>1.748 ns</td><td>317.01 ns</td><td>1.34</td><td>0.03</td><td>0.0057</td><td>-</td><td>48 B</td><td>NA</td>
+</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>none</td><td>759.69 ns</td><td>68.972 ns</td><td>79.429 ns</td><td>813.60 ns</td><td>3.21</td><td>0.34</td><td>0.2842</td><td>0.0019</td><td>2384 B</td><td>NA</td>
+</tr><tr><td>FluentValidation</td><td>none</td><td>697.55 ns</td><td>6.102 ns</td><td>5.095 ns</td><td>697.81 ns</td><td>2.94</td><td>0.07</td><td>0.0906</td><td>-</td><td>760 B</td><td>NA</td>
+</tr><tr><td>DataAnnotation</td><td>one</td><td>1,589.07 ns</td><td>14.376 ns</td><td>13.447 ns</td><td>1,590.97 ns</td><td>7.02</td><td>0.06</td><td>0.3357</td><td>-</td><td>2808 B</td><td>NA</td>
+</tr><tr><td>Validly</td><td>one</td><td>226.34 ns</td><td>0.981 ns</td><td>0.918 ns</td><td>225.97 ns</td><td>1.00</td><td>0.01</td><td>-</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>&#39;Validot (IsValid)&#39;</td><td>one</td><td>66.53 ns</td><td>0.272 ns</td><td>0.241 ns</td><td>66.46 ns</td><td>0.29</td><td>0.00</td><td>0.0057</td><td>-</td><td>48 B</td><td>NA</td>
+</tr><tr><td>&#39;Validot (Validate)&#39;</td><td>one</td><td>865.82 ns</td><td>7.534 ns</td><td>6.678 ns</td><td>865.97 ns</td><td>3.83</td><td>0.03</td><td>0.3271</td><td>0.0029</td><td>2736 B</td><td>NA</td>
+</tr><tr><td>FluentValidation</td><td>one</td><td>3,032.77 ns</td><td>18.918 ns</td><td>17.696 ns</td><td>3,035.72 ns</td><td>13.40</td><td>0.09</td><td>0.6523</td><td>0.0038</td><td>5456 B</td><td>NA</td>
 </tr></tbody></table>
 </body>
 </html>

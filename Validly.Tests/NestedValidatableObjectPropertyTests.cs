@@ -38,13 +38,13 @@ public class NestedValidatableObjectPropertyTests
 			RootProp = "root",
 		};
 
-		var result = await root.Validate();
+		var result = await root.ValidateAsync();
 		Assert.False(result.IsSuccess);
 		Assert.True(root.NestedObject.ValidationExecuted);
 
 		// Single validation message for the nested property
 		Assert.Equal(
-			$"{nameof(RootObject.NestedObject)}.{nameof(NestedObject.NestedProp)}",
+			$"{nameof(RootObject.NestedObject)}/{nameof(NestedObject.NestedProp)}",
 			result.Properties.Single().PropertyPath
 		);
 	}

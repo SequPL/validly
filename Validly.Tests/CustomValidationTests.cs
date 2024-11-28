@@ -78,7 +78,7 @@ public class CustomValidationTests
 	{
 		var request = new CustomValidationAsyncEnumerableReturnType { SomeValue = "test" };
 
-		using var result = await request.Validate();
+		using var result = await request.ValidateAsync();
 		Assert.False(result.IsSuccess);
 		Assert.Collection(result.Properties, propertyResult => Assert.True(propertyResult.Messages.Count == 1));
 	}

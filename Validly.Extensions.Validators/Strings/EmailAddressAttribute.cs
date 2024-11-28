@@ -26,26 +26,20 @@ public class EmailAddressAttribute : Attribute
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(string? value)
 	{
-		if (!Valid(value))
+		if (value is null)
 		{
-			return ValidationMessage;
-		}
-
-		return null;
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static bool Valid(string? value)
-	{
-		if (value == null)
-		{
-			return true;
+			return null;
 		}
 
 		// only return true if there is only 1 '@' character
 		// and it is neither the first nor the last character
 		int index = value.IndexOf('@');
 
-		return index > 0 && index != value.Length - 1 && index == value.LastIndexOf('@');
+		if (index > 0 && index != value.Length - 1 && index == value.LastIndexOf('@'))
+		{
+			return null;
+		}
+
+		return ValidationMessage;
 	}
 }

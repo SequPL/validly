@@ -12,6 +12,11 @@ internal record ObjectProperties
 	public required bool? UseAutoValidators { get; init; }
 
 	/// <summary>
+	/// Enables/disables exit-early behavior
+	/// </summary>
+	public required bool? ExitEarly { get; init; }
+
+	/// <summary>
 	/// Usings from the validator's file
 	/// </summary>
 	public required EquatableArray<string> Usings { get; init; }

@@ -5,7 +5,7 @@ using Validly.Validators;
 
 namespace Validly.Tests;
 
-[Validatable]
+[Validatable(UseExitEarly = true)]
 public partial class CreateUserRequest
 {
 	[Required]
@@ -80,6 +80,9 @@ public class BaseTests
 		Assert.NotNull(nameResult);
 		Assert.Equal(nameof(CreateUserRequest.Name), nameResult.PropertyPath);
 		Assert.Single(nameResult.Messages);
+
+		// Problem detail
+		Assert.Single(result.GetProblemDetails().Errors);
 	}
 
 	[Fact]
@@ -102,6 +105,9 @@ public class BaseTests
 		Assert.NotNull(ageResult);
 		Assert.Equal(nameof(CreateUserRequest.Age), ageResult.PropertyPath);
 		Assert.Single(ageResult.Messages);
+
+		// Problem detail
+		Assert.Single(result.GetProblemDetails().Errors);
 	}
 
 	[Fact]
@@ -124,5 +130,8 @@ public class BaseTests
 		Assert.NotNull(emailResult);
 		Assert.Equal(nameof(CreateUserRequest.Email), emailResult.PropertyPath);
 		Assert.Single(emailResult.Messages);
+
+		// Problem detail
+		Assert.Single(result.GetProblemDetails().Errors);
 	}
 }

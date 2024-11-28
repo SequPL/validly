@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Runtime.CompilerServices;
 using Microsoft.Extensions.ObjectPool;
 using Validly.Utils;
 
@@ -13,18 +12,8 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	private static readonly FinalizableObjectPool<ExtendableValidationResult> Pool =
 		FinalizableObjectPool.Create<ExtendableValidationResult>();
 	private static readonly ArrayPool<ValidationMessage> GlobalMessagePool = ArrayPool<ValidationMessage>.Shared;
-	private static readonly ArrayPool<PropertyValidationResult> PropertyValidationResultPool =
-		ArrayPool<PropertyValidationResult>.Shared;
 
 	private bool _disposed;
-
-	// /// <summary>
-	// /// Represents the result of a validation. Variant with methods for adding global messages and properties results.
-	// /// </summary>
-	// public ExtendableValidationResult(int propertiesCount)
-	// 	: base(new List<ValidationMessage>(), new List<PropertyValidationResult>(propertiesCount))
-	// {
-	// }
 
 	static ExtendableValidationResult() { }
 
@@ -51,16 +40,16 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	{
 		_disposed = false;
 		GlobalMessages = GlobalMessagePool.Rent(ValidlyOptions.GlobalMessagesPoolSize);
-		PropertiesResult = PropertyValidationResultPool.Rent(propertiesCount);
+		PropertiesResultCollection = PropertyValidationResultCollection.Create(
+			propertiesCount,
+			ValidlyOptions.PropertyMessagesPoolSize
+		);
 	}
 
 	/// <inheritdoc />
 	bool IResettable.TryReset()
 	{
-		PropertiesResult = null!;
-		GlobalMessages = null!;
 		GlobalMessagesCount = 0;
-		PropertiesResultCount = 0;
 		return true;
 	}
 
@@ -84,16 +73,10 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 		}
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-		if (PropertiesResult is not null)
+		if (PropertiesResultCollection is not null)
 		{
-			for (int index = 0; index < PropertiesResultCount; index++)
-			{
-				PropertyValidationResult propertyValidationResult = PropertiesResult[index];
-				propertyValidationResult.Dispose();
-			}
-
-			PropertyValidationResultPool.Return(PropertiesResult);
-			PropertiesResult = null!;
+			PropertiesResultCollection.Dispose();
+			PropertiesResultCollection = null!;
 		}
 
 		_disposed = true;
@@ -110,132 +93,6 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 		{
 			// Reregister for finalization if not disposed (returned to the pool)
 			GC.ReRegisterForFinalize(this);
-		}
-	}
-
-	/// <summary>
-	/// Add a global message to the validation result
-	/// </summary>
-	/// <param name="message"></param>
-	/// <returns></returns>
-	public ExtendableValidationResult AddGlobalMessage(ValidationMessage message)
-	{
-		AddGlobalMessageToArray(message);
-		return this;
-	}
-
-	/// <summary>
-	/// Add a global messages to the validation result
-	/// </summary>
-	/// <param name="messages"></param>
-	/// <returns></returns>
-	public ExtendableValidationResult AddGlobalMessages(IEnumerable<ValidationMessage> messages)
-	{
-		foreach (ValidationMessage? message in messages)
-		{
-			AddGlobalMessageToArray(message);
-		}
-
-		return this;
-	}
-
-	/// <summary>
-	/// Add a global messages to the validation result
-	/// </summary>
-	/// <param name="messages"></param>
-	/// <returns></returns>
-	public async ValueTask<ExtendableValidationResult> AddGlobalMessages(IAsyncEnumerable<ValidationMessage> messages)
-	{
-		await foreach (ValidationMessage message in messages)
-		{
-			AddGlobalMessageToArray(message);
-		}
-
-		return this;
-	}
-
-	/// <summary>
-	/// Add a property result to the validation result
-	/// </summary>
-	public ExtendableValidationResult AddPropertyResult(PropertyValidationResult propertyResult)
-	{
-		AddPropertyResultToArray(propertyResult);
-		return this;
-	}
-
-	/// <summary>
-	/// Combine results. Global messages and property results are added to the current result.
-	/// </summary>
-	/// <param name="result"></param>
-	public void Combine(ValidationResult result)
-	{
-		// POP all messages from the result and add them to the current result
-		for (int index = 0; index < result.GlobalMessagesCount; index++)
-		{
-			ValidationMessage message = result.GlobalMessages[index];
-			AddGlobalMessageToArray(message);
-		}
-
-		// Reset count
-		result.GlobalMessagesCount = 0;
-
-		// POP all properties from the result and add them to the current result
-		for (int index = 0; index < result.PropertiesResultCount; index++)
-		{
-			PropertyValidationResult propertyResult = result.PropertiesResult[index];
-			result.PropertiesResult[index] = null!;
-			AddPropertyResultToArray(propertyResult);
-		}
-
-		// Reset count
-		result.PropertiesResultCount = 0;
-	}
-
-	/// <summary>
-	/// Combine results. Global messages and property results are added to the current result.
-	/// </summary>
-	/// <param name="result"></param>
-	/// <param name="propertyName">Name of the property from which the result comes from.</param>
-	public void CombineNested(ValidationResult result, string propertyName)
-	{
-		// POP all messages from the result and add them to the current result
-		for (int index = 0; index < result.GlobalMessagesCount; index++)
-		{
-			ValidationMessage message = result.GlobalMessages[index];
-			AddGlobalMessageToArray(message);
-		}
-
-		// Reset count
-		result.GlobalMessagesCount = 0;
-
-		// POP all properties from the result and add them to the current result
-		for (int index = 0; index < result.PropertiesResultCount; index++)
-		{
-			PropertyValidationResult propertyResult = result.PropertiesResult[index];
-			((IInternalPropertyValidationResult)propertyResult).AsNestedPropertyValidationResult(propertyName);
-			result.PropertiesResult[index] = null!;
-			AddPropertyResultToArray(propertyResult);
-		}
-
-		// Reset count
-		result.PropertiesResultCount = 0;
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private void AddGlobalMessageToArray(ValidationMessage message)
-	{
-		if (GlobalMessagesCount < GlobalMessages.Length)
-		{
-			GlobalMessages[GlobalMessagesCount++] = message;
-		}
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private void AddPropertyResultToArray(PropertyValidationResult propertyResult)
-	{
-		if (PropertiesResultCount < PropertiesResult.Length)
-		{
-			PropertiesResult[PropertiesResultCount++] = propertyResult;
 		}
 	}
 }

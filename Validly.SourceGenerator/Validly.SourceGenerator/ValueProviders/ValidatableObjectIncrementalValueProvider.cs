@@ -51,6 +51,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 		return new ObjectProperties
 		{
 			UseAutoValidators = GetUseAutoValidatorsValue(validatableAttribute),
+			ExitEarly = GetGetExitEarlyValue(validatableAttribute),
 			Usings = new EquatableArray<string>(usings.Select(static usingSyntax => usingSyntax.ToString()).ToArray()),
 			ClassOrRecordKeyword = typeSymbol.IsRecord ? "record" : "class",
 			Accessibility = typeSymbol.DeclaredAccessibility,
@@ -136,6 +137,31 @@ internal static class ValidatableObjectIncrementalValueProvider
 		return null;
 	}
 
+	private static bool? GetGetExitEarlyValue(AttributeData validatableAttribute)
+	{
+		if (
+			validatableAttribute
+				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.UseExitEarly))
+				.Value.Value
+			is true
+		)
+		{
+			return true;
+		}
+
+		if (
+			validatableAttribute
+				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.NoExitEarly))
+				.Value.Value
+			is true
+		)
+		{
+			return false;
+		}
+
+		return null;
+	}
+
 	private static UsingDirectiveSyntax[] GetUsings(TypeDeclarationSyntax targetNode)
 	{
 		int max = 5;
@@ -147,9 +173,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 			max--;
 		}
 
-		var usings = target is CompilationUnitSyntax cus
-			? cus.Usings.ToArray()
-			: Array.Empty<UsingDirectiveSyntax>();
+		var usings = target is CompilationUnitSyntax cus ? cus.Usings.ToArray() : Array.Empty<UsingDirectiveSyntax>();
 		return usings;
 	}
 }

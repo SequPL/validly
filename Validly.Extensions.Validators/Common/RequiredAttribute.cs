@@ -35,7 +35,7 @@ public class RequiredAttribute : Attribute
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid(string? value)
 	{
-		if (value is null || (string.IsNullOrEmpty(value) && !_allowEmptyStrings))
+		if (value is null || (!_allowEmptyStrings && value == string.Empty))
 		{
 			return RequiredMessage;
 		}
@@ -48,7 +48,6 @@ public class RequiredAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid<T>(T? value)
 	{
 		return value is null ? RequiredMessage : null;

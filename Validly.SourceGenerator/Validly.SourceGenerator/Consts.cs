@@ -1,4 +1,3 @@
-using Validly.Utils;
 using Validly.Validators;
 
 namespace Validly.SourceGenerator;
@@ -12,7 +11,6 @@ internal static class Consts
 	public const string InEnumAttributeQualifiedName = "Validly.Extensions.Validators.Enums.InEnumAttribute";
 	public const string ValidatableAttributeQualifiedName = $"Validly.{nameof(ValidatableAttribute)}";
 	public const string ValidatorAttributeQualifiedName = $"Validly.Validators.{nameof(ValidatorAttribute)}";
-	public const string DisplayNameAttributeQualifiedName = "System.ComponentModel.DisplayNameAttribute";
 	public const string ValidationContextQualifiedName = $"Validly.{nameof(ValidationContext)}";
 	public const string ValidationResultQualifiedName = $"Validly.{nameof(ValidationResult)}";
 	public const string ExtendableValidationResultQualifiedName = $"Validly.{nameof(ExtendableValidationResult)}";
@@ -22,11 +20,11 @@ internal static class Consts
 
 	public const string IValidatableGlobalRef = $"global::Validly.{nameof(IValidatable)}";
 	public const string ValidationResultGlobalRef = $"global::Validly.{nameof(ValidationResult)}";
-	public const string PropertyValidationResultGlobalRef = $"global::Validly.{nameof(PropertyValidationResult)}";
+	public const string ExpandablePropertyValidationResultGlobalRef =
+		$"global::Validly.{nameof(IExpandablePropertyValidationResult)}";
 	public const string ValidationContextGlobalRef = $"global::Validly.{nameof(ValidationContext)}";
 	public const string ExtendableValidationResultGlobalRef = $"global::Validly.{nameof(ExtendableValidationResult)}";
 	public const string InternalValidationResultGlobalRef = $"global::Validly.{nameof(IInternalValidationResult)}";
-	public const string ValidationResultHelperGlobalRef = $"global::Validly.Utils.{nameof(ValidationResultHelper)}";
 	public const string ServiceProviderGlobalRef = $"global::System.{nameof(IServiceProvider)}";
 	public const string ValidationMessageGlobalRef = $"global::Validly.{nameof(ValidationMessage)}";
 

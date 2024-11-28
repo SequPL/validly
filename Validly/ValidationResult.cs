@@ -1,4 +1,6 @@
-using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+using Validly.Details;
+using Validly.Utils;
 
 namespace Validly;
 
@@ -11,8 +13,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 		new(
 			// ReSharper disable once UseCollectionExpression
 			Array.Empty<ValidationMessage>(),
-			// ReSharper disable once UseCollectionExpression
-			Array.Empty<PropertyValidationResult>()
+			PropertyValidationResultCollection.Empty
 		);
 
 	/// <summary>
@@ -28,12 +29,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	/// <summary>
 	/// Properties validation results
 	/// </summary>
-	protected internal PropertyValidationResult[] PropertiesResult;
-
-	/// <summary>
-	/// Number of items in <see cref="PropertiesResult"/> array
-	/// </summary>
-	protected internal int PropertiesResultCount;
+	protected internal PropertyValidationResultCollection PropertiesResultCollection;
 
 	/// <summary>
 	/// When true, the object has been disposed and is inside the pool
@@ -43,39 +39,23 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	/// <summary>
 	/// List of global validation messages
 	/// </summary>
-	public IReadOnlyCollection<ValidationMessage> Global =>
-		new ReadOnlyCollection<ValidationMessage>(GlobalMessages.AsSpan(0, GlobalMessagesCount).ToArray());
+	public IReadOnlyList<ValidationMessage> Global =>
+		new SpanCollection<ValidationMessage>(
+			GlobalMessages,
+			0,
+			Math.Max(GlobalMessagesCount - 1, 0),
+			GlobalMessagesCount
+		);
 
 	/// <summary>
 	/// List of properties validation results
 	/// </summary>
-	public IReadOnlyCollection<PropertyValidationResult> Properties =>
-		new ReadOnlyCollection<PropertyValidationResult>(PropertiesResult.AsSpan(0, PropertiesResultCount).ToArray());
+	public IReadOnlyList<PropertyValidationResult> Properties => PropertiesResultCollection;
 
 	/// <summary>
 	/// True if validation was successful
 	/// </summary>
-	public bool IsSuccess
-	{
-		get
-		{
-			// Mem optimized: _success ??= Global.Count == 0 && PropertiesResult.All(p => p.IsSuccess);
-			if (GlobalMessagesCount != 0)
-			{
-				return false;
-			}
-
-			for (int index = 0; index < PropertiesResultCount; index++)
-			{
-				if (!PropertiesResult[index].IsSuccess)
-				{
-					return false;
-				}
-			}
-
-			return true;
-		}
-	}
+	public bool IsSuccess => GlobalMessagesCount == 0 && PropertiesResultCollection.IsSuccess;
 
 	/// <summary>
 	/// Represents the result of a validation
@@ -85,9 +65,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	{
 		GlobalMessages = globalMessages;
 		GlobalMessagesCount = globalMessages.Length;
-
-		// ReSharper disable once UseCollectionExpression
-		PropertiesResult = Array.Empty<PropertyValidationResult>();
+		PropertiesResultCollection = PropertyValidationResultCollection.Empty;
 	}
 
 	/// <summary>
@@ -99,13 +77,11 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 
 	/// <param name="globalMessages"></param>
 	/// <param name="propertiesResult"></param>
-	private ValidationResult(ValidationMessage[] globalMessages, PropertyValidationResult[] propertiesResult)
+	private ValidationResult(ValidationMessage[] globalMessages, PropertyValidationResultCollection propertiesResult)
 	{
 		GlobalMessages = globalMessages;
 		GlobalMessagesCount = globalMessages.Length;
-
-		PropertiesResult = propertiesResult;
-		PropertiesResultCount = propertiesResult.Length;
+		PropertiesResultCollection = propertiesResult;
 	}
 
 	/// <summary>
@@ -124,10 +100,141 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	public static ValidationResult Success() => SuccessResult;
 
 	/// <summary>
-	/// Returns number of properties in this validation result
+	/// Copies data to a structure similar to the validation problem details defined in RFC 9457
 	/// </summary>
 	/// <returns></returns>
-	int IInternalValidationResult.GetPropertiesCount() => PropertiesResultCount;
+	public ValidationResultDetails GetProblemDetails()
+	{
+		return new ValidationResultDetails
+		{
+			Errors = PropertiesResultCollection.SelectMany(prop => prop.Messages.Select(error =>
+				new ValidationErrorDetail
+				{
+					Detail = error.Message,
+					ResourceKey = error.ResourceKey,
+					Args = error.Args,
+					Pointer = $"#{prop.PropertyPath}",
+					FieldName = prop.PropertyDisplayName
+				})).ToArray()
+		};
+	}
+
+	/// <inheritdoc />
+	int IInternalValidationResult.GetPropertiesCount() => PropertiesResultCollection.Count;
+
+	/// <inheritdoc />
+	IExpandablePropertyValidationResult IInternalValidationResult.InitProperty(string name, string? displayName)
+	{
+		return PropertiesResultCollection.InitProperty(name, displayName ?? name);
+	}
+
+	/// <summary>
+	/// Add a global message to the validation result
+	/// </summary>
+	/// <param name="message"></param>
+	/// <returns></returns>
+	void IInternalValidationResult.Add(Validation? message)
+	{
+		if (message is null || message.IsSuccess)
+		{
+			return;
+		}
+
+		AddGlobalMessageToArray(message.Message);
+	}
+
+	/// <summary>
+	/// Add a global message to the validation result
+	/// </summary>
+	/// <param name="message"></param>
+	/// <returns></returns>
+	void IInternalValidationResult.Add(ValidationMessage? message)
+	{
+		if (message is null)
+		{
+			return;
+		}
+
+		AddGlobalMessageToArray(message);
+	}
+
+	/// <summary>
+	/// Add a global messages to the validation result
+	/// </summary>
+	/// <param name="messages"></param>
+	/// <returns></returns>
+	void IInternalValidationResult.Add(IEnumerable<ValidationMessage> messages)
+	{
+		foreach (ValidationMessage? message in messages)
+		{
+			AddGlobalMessageToArray(message);
+		}
+	}
+
+	/// <summary>
+	/// Add a global messages to the validation result
+	/// </summary>
+	/// <param name="messages"></param>
+	/// <returns></returns>
+	async Task IInternalValidationResult.AddAsync(IAsyncEnumerable<ValidationMessage> messages)
+	{
+		await foreach (ValidationMessage message in messages)
+		{
+			AddGlobalMessageToArray(message);
+		}
+	}
+
+	void IInternalValidationResult.Combine(ValidationResult result)
+	{
+		// POP all messages from the result and add them to the current result
+		for (int index = 0; index < result.GlobalMessagesCount; index++)
+		{
+			ValidationMessage message = result.GlobalMessages[index];
+			AddGlobalMessageToArray(message);
+		}
+
+		// Reset count
+		result.GlobalMessagesCount = 0;
+
+		// Concat properties
+		PropertiesResultCollection.Concat(result.PropertiesResultCollection);
+	}
+
+	void IInternalValidationResult.CombineNested(ValidationResult result, string propertyName)
+	{
+		// POP all messages from the result and add them to the current result
+		for (int index = 0; index < result.GlobalMessagesCount; index++)
+		{
+			ValidationMessage message = result.GlobalMessages[index];
+			AddGlobalMessageToArray(message);
+		}
+
+		// Reset count
+		result.GlobalMessagesCount = 0;
+
+		// POP all properties from the result and add them to the current result
+		for (int index = 0; index < result.PropertiesResultCollection.Count; index++)
+		{
+			PropertyValidationResult propertyResult = result.PropertiesResultCollection[index];
+			((IInternalPropertyValidationResult)propertyResult).AsNestedPropertyValidationResult(propertyName);
+			// result.PropertiesResultCollection[index] = null!;
+			PropertiesResultCollection.Add(propertyResult);
+		}
+
+		// // Reset count
+		// result.PropertiesResultCollection.Count = 0;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void AddGlobalMessageToArray(ValidationMessage message)
+	{
+		if (GlobalMessagesCount >= GlobalMessages.Length)
+		{
+			throw new IndexOutOfRangeException("Collection is full.");
+		}
+
+		GlobalMessages[GlobalMessagesCount++] = message;
+	}
 
 	/// <summary>
 	/// Dispose
@@ -142,13 +249,8 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 
 		if (disposing)
 		{
-			for (int index = 0; index < PropertiesResultCount; index++)
-			{
-				PropertyValidationResult propertyValidationResult = PropertiesResult[index];
-				propertyValidationResult.Dispose();
-			}
-
-			PropertiesResult = null!;
+			PropertiesResultCollection.Dispose();
+			PropertiesResultCollection = null!;
 			GlobalMessages = null!;
 		}
 

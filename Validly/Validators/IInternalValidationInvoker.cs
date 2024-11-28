@@ -11,5 +11,5 @@ public interface IInternalValidationInvoker
 	/// <param name="validationContext"></param>
 	/// <param name="serviceProvider"></param>
 	/// <returns></returns>
-	ValueTask<ValidationResult> Validate(ValidationContext validationContext, IServiceProvider? serviceProvider);
+	ValueTask<ValidationResult> ValidateAsync(ValidationContext validationContext, IServiceProvider? serviceProvider);
 }
