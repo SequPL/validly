@@ -108,7 +108,7 @@ public class SpanCollection<TItem> : IReadOnlyList<TItem>, ICollection<TItem>
 	public bool Remove(TItem item)
 	{
 		// We cannot allow this. We would have to shift all the items.
-		throw new NotImplementedException();
+		throw new InvalidOperationException("Not implemented.");
 	}
 
 	/// <inheritdoc />
