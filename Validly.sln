@@ -33,6 +33,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{6A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DDDValidations", "Examples\DDDValidations\DDDValidations.csproj", "{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validly.Extensions.AspNetCore", "Validly.Extensions.AspNetCore\Validly.Extensions.AspNetCore.csproj", "{DC3493C8-63E3-4334-A445-45E6C03F143B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validly.Extensions.AspNetCore.Example", "Examples\Validly.Extensions.AspNetCore.Example\Validly.Extensions.AspNetCore.Example.csproj", "{BEB2B557-2E40-4856-8020-D0DEB8E03B54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,10 +71,19 @@ Global
 		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC3493C8-63E3-4334-A445-45E6C03F143B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC3493C8-63E3-4334-A445-45E6C03F143B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC3493C8-63E3-4334-A445-45E6C03F143B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC3493C8-63E3-4334-A445-45E6C03F143B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEB2B557-2E40-4856-8020-D0DEB8E03B54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEB2B557-2E40-4856-8020-D0DEB8E03B54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEB2B557-2E40-4856-8020-D0DEB8E03B54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEB2B557-2E40-4856-8020-D0DEB8E03B54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{056F16FC-A505-4849-8F47-D8583A5A6A13} = {E8AB26F1-6562-4531-B516-2457130E6B5B}
 		{05C977ED-F6AA-46AE-B0DF-538139013694} = {E8AB26F1-6562-4531-B516-2457130E6B5B}
 		{8AA42960-7554-4289-B4AA-1ED1E6D8AA71} = {6A7A9B79-68AD-4D8B-AB63-CD9A2CC7FD24}
+		{BEB2B557-2E40-4856-8020-D0DEB8E03B54} = {6A7A9B79-68AD-4D8B-AB63-CD9A2CC7FD24}
 	EndGlobalSection
 EndGlobal

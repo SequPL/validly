@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using Validly.Details;
 using Validly.Utils;
 
@@ -9,27 +10,19 @@ namespace Validly;
 /// </summary>
 public class ValidationResult : IDisposable, IInternalValidationResult
 {
-	private static readonly ValidationResult SuccessResult =
-		new(
-			// ReSharper disable once UseCollectionExpression
-			Array.Empty<ValidationMessage>(),
-			PropertyValidationResultCollection.Empty
-		);
+	private static readonly ValidationResult SuccessResult = new();
 
 	/// <summary>
 	/// Global validation messages; messages that are not tied to a specific property
 	/// </summary>
-	protected internal ValidationMessage[] GlobalMessages;
-
-	/// <summary>
-	/// Number of items in <see cref="GlobalMessages"/> array
-	/// </summary>
-	protected internal int GlobalMessagesCount;
+	protected internal readonly SpanCollection<ValidationMessage>
+	// ReSharper disable once UseCollectionExpression
+	GlobalMessages = new(Array.Empty<ValidationMessage>(), 0, 0, 0);
 
 	/// <summary>
 	/// Properties validation results
 	/// </summary>
-	protected internal PropertyValidationResultCollection PropertiesResultCollection;
+	protected internal readonly PropertyValidationResultCollection PropertiesResultCollection = new();
 
 	/// <summary>
 	/// When true, the object has been disposed and is inside the pool
@@ -39,13 +32,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	/// <summary>
 	/// List of global validation messages
 	/// </summary>
-	public IReadOnlyList<ValidationMessage> Global =>
-		new SpanCollection<ValidationMessage>(
-			GlobalMessages,
-			0,
-			Math.Max(GlobalMessagesCount - 1, 0),
-			GlobalMessagesCount
-		);
+	public IReadOnlyList<ValidationMessage> Global => GlobalMessages;
 
 	/// <summary>
 	/// List of properties validation results
@@ -55,7 +42,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	/// <summary>
 	/// True if validation was successful
 	/// </summary>
-	public bool IsSuccess => GlobalMessagesCount == 0 && PropertiesResultCollection.IsSuccess;
+	public bool IsSuccess => GlobalMessages.Count == 0 && PropertiesResultCollection.IsSuccess;
 
 	/// <summary>
 	/// Represents the result of a validation
@@ -63,9 +50,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	/// <param name="globalMessages"></param>
 	public ValidationResult(ValidationMessage[] globalMessages)
 	{
-		GlobalMessages = globalMessages;
-		GlobalMessagesCount = globalMessages.Length;
-		PropertiesResultCollection = PropertyValidationResultCollection.Empty;
+		GlobalMessages = new(globalMessages, 0, globalMessages.Length - 1, globalMessages.Length);
 	}
 
 	/// <summary>
@@ -74,15 +59,6 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	/// <param name="globalMessages"></param>
 	public ValidationResult(ICollection<ValidationMessage> globalMessages)
 		: this(globalMessages.ToArray()) { }
-
-	/// <param name="globalMessages"></param>
-	/// <param name="propertiesResult"></param>
-	private ValidationResult(ValidationMessage[] globalMessages, PropertyValidationResultCollection propertiesResult)
-	{
-		GlobalMessages = globalMessages;
-		GlobalMessagesCount = globalMessages.Length;
-		PropertiesResultCollection = propertiesResult;
-	}
 
 	/// <summary>
 	/// Constructor for pooling
@@ -107,16 +83,59 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	{
 		return new ValidationResultDetails
 		{
-			Errors = PropertiesResultCollection.SelectMany(prop => prop.Messages.Select(error =>
-				new ValidationErrorDetail
-				{
-					Detail = error.Message,
-					ResourceKey = error.ResourceKey,
-					Args = error.Args,
-					Pointer = $"#{prop.PropertyPath}",
-					FieldName = prop.PropertyDisplayName
-				})).ToArray()
+			Errors = PropertiesResultCollection
+				.SelectMany(prop =>
+					prop.Messages.Select(error => new ValidationErrorDetail
+					{
+						Detail = error.Message,
+						ResourceKey = error.ResourceKey,
+						Args = error.Args,
+						Pointer = $"#{prop.PropertyPath}",
+						FieldName = prop.PropertyDisplayName,
+					})
+				)
+				.ToArray(),
 		};
+	}
+
+	/// <summary>
+	/// Generates JSON matching the validation problem details defined in RFC 9457
+	/// </summary>
+	/// <returns></returns>
+	public string GetProblemDetailsJson()
+	{
+		var sb = new StringBuilder();
+
+		for (int index = 0; index < PropertiesResultCollection.Count; index++)
+		{
+			PropertyValidationResult prop = PropertiesResultCollection.ArrayBuffer[index];
+
+			foreach (ValidationMessage error in prop.Messages)
+			{
+				sb.AppendLine(
+					$$"""
+					    {
+					      "detail": "{{error.Message}}",
+					      "resourceKey": "{{error.ResourceKey}}",
+					      "args": [{{error.ArgsJson}}],
+					      "pointer": "#{{prop.PropertyPath}}",
+					      "fieldName": "{{prop.PropertyDisplayName}}"
+					    },
+					"""
+				);
+			}
+		}
+
+		return $$"""
+			{
+			  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+			  "title": "One or more validation errors occurred.",
+			  "status": 400,
+			  "errors": [
+			{{sb.ToString().TrimEnd(',', ' ', '\n', '\r', '\t')}}
+			  ]
+			}
+			""";
 	}
 
 	/// <inheritdoc />
@@ -187,14 +206,11 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	void IInternalValidationResult.Combine(ValidationResult result)
 	{
 		// POP all messages from the result and add them to the current result
-		for (int index = 0; index < result.GlobalMessagesCount; index++)
+		for (int index = 0; index < result.GlobalMessages.Count; index++)
 		{
 			ValidationMessage message = result.GlobalMessages[index];
 			AddGlobalMessageToArray(message);
 		}
-
-		// Reset count
-		result.GlobalMessagesCount = 0;
 
 		// Concat properties
 		PropertiesResultCollection.Concat(result.PropertiesResultCollection);
@@ -203,14 +219,11 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	void IInternalValidationResult.CombineNested(ValidationResult result, string propertyName)
 	{
 		// POP all messages from the result and add them to the current result
-		for (int index = 0; index < result.GlobalMessagesCount; index++)
+		for (int index = 0; index < result.GlobalMessages.Count; index++)
 		{
 			ValidationMessage message = result.GlobalMessages[index];
 			AddGlobalMessageToArray(message);
 		}
-
-		// Reset count
-		result.GlobalMessagesCount = 0;
 
 		// POP all properties from the result and add them to the current result
 		for (int index = 0; index < result.PropertiesResultCollection.Count; index++)
@@ -228,12 +241,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private void AddGlobalMessageToArray(ValidationMessage message)
 	{
-		if (GlobalMessagesCount >= GlobalMessages.Length)
-		{
-			throw new IndexOutOfRangeException("Collection is full.");
-		}
-
-		GlobalMessages[GlobalMessagesCount++] = message;
+		GlobalMessages.Add(message);
 	}
 
 	/// <summary>
@@ -250,8 +258,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 		if (disposing)
 		{
 			PropertiesResultCollection.Dispose();
-			PropertiesResultCollection = null!;
-			GlobalMessages = null!;
+			GlobalMessages.Clear();
 		}
 
 		_disposed = true;

@@ -1,38 +1,17 @@
 using System.Buffers;
 using System.Collections;
-using Microsoft.Extensions.ObjectPool;
-using Validly.Utils;
 
 namespace Validly;
 
 /// <summary>
 /// Collection of <see cref="PropertyValidationResult"/>s for all the properties of the object being validated.
 /// </summary>
-/// <remarks>
-/// This class is pooled and should be created using <see cref="Create"/> method.
-/// </remarks>
-public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidationResult>, IDisposable, IResettable
+public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidationResult>, IDisposable
 {
 	/// <summary>
 	/// Empty, readonly, collection
 	/// </summary>
-	public static readonly PropertyValidationResultCollection Empty =
-#pragma warning disable CS0618 // Type or member is obsolete
-		new()
-		{
-			_disposed = true,
-			// ReSharper disable once UseCollectionExpression
-			_propertiesResult = Array.Empty<PropertyValidationResult>(),
-			// ReSharper disable once UseCollectionExpression
-			_messages = Array.Empty<ValidationMessage>(),
-		};
-#pragma warning restore CS0618 // Type or member is obsolete
-
-	/// <summary>
-	/// Pool for this class
-	/// </summary>
-	private static readonly FinalizableObjectPool<PropertyValidationResultCollection> Pool =
-		FinalizableObjectPool.Create<PropertyValidationResultCollection>();
+	public static readonly PropertyValidationResultCollection Empty = new();
 
 	/// <summary>
 	/// Pool for <see cref="PropertyValidationResult"/>s
@@ -45,7 +24,7 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 	/// </summary>
 	private static readonly ArrayPool<ValidationMessage> ValidationMessagePool = ArrayPool<ValidationMessage>.Shared;
 
-	private bool _disposed;
+	private bool _disposed = true;
 
 	/// <summary>
 	/// Array of all properties results
@@ -54,7 +33,8 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 	/// It is pooled collection. Real count of the items is stored in <see cref="_count"/>.
 	/// Objects inside the array are part of the pool; they are reused and not reallocated.
 	/// </remarks>
-	private PropertyValidationResult[] _propertiesResult = null!;
+	// ReSharper disable once UseCollectionExpression
+	private PropertyValidationResult[] _propertiesResult = Array.Empty<PropertyValidationResult>();
 
 	/// <summary>
 	/// Count of items in <see cref="_propertiesResult"/> pooled array
@@ -67,7 +47,8 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 	/// <remarks>
 	/// Messages are reassigned and not reused; this buffer is pooled so the array itself do not allocate memory.
 	/// </remarks>
-	private ValidationMessage[] _messages = null!;
+	// ReSharper disable once UseCollectionExpression
+	private ValidationMessage[] _messages = Array.Empty<ValidationMessage>();
 
 	/// <summary>
 	/// Size of the message buffer for one property
@@ -76,6 +57,8 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 
 	/// <inheritdoc />
 	public int Count => _count;
+
+	internal PropertyValidationResult[] ArrayBuffer => _propertiesResult;
 
 	/// <summary>
 	/// True if validation of all the properties was successful
@@ -98,32 +81,28 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 	}
 
 	/// <summary>
-	/// Ctor for pooled objects
+	/// Create collection of property results
 	/// </summary>
-	[Obsolete("Use Create method instead.")]
-	public PropertyValidationResultCollection() { }
-
-	/// <summary>
-	/// Creates new instance of <see cref="PropertyValidationResultCollection"/>
-	/// </summary>
-	/// <returns></returns>
-	public static PropertyValidationResultCollection Create(int propertiesCount, int messagesPerProperty)
+	/// <param name="properties"></param>
+	public PropertyValidationResultCollection(PropertyValidationResult[] properties)
 	{
-		var collection = Pool.Get();
-		collection._disposed = false;
-		collection._messagesPerProperty = messagesPerProperty;
-		collection._messages = ValidationMessagePool.Rent(propertiesCount * messagesPerProperty);
-		collection._propertiesResult = PropertyValidationResultPool.Rent(propertiesCount);
-		collection._count = 0;
-
-		return collection;
+		// Users/developer can use this Ctor; this ctor creates instance that should work without pooling
+		_propertiesResult = properties;
+		_disposed = false;
 	}
 
-	/// <inheritdoc />
-	bool IResettable.TryReset()
+	/// <summary>
+	/// Internal ctor for pooling
+	/// </summary>
+	internal PropertyValidationResultCollection() { }
+
+	internal void Reset(int propertiesCount, int messagesPerProperty)
 	{
+		_disposed = false;
+		_messagesPerProperty = messagesPerProperty;
+		_messages = ValidationMessagePool.Rent(propertiesCount * messagesPerProperty);
+		_propertiesResult = PropertyValidationResultPool.Rent(propertiesCount);
 		_count = 0;
-		return true;
 	}
 
 	internal PropertyValidationResult InitProperty(string name, string displayName)
@@ -132,7 +111,7 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 			// ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
 			new PropertyValidationResult();
 
-		int start = Math.Max(0, _count - 1) * _messagesPerProperty;
+		int start = (_count - 1) * _messagesPerProperty;
 		propertyResult.ResetProperty(
 			name,
 			displayName,
@@ -159,7 +138,7 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 			_propertiesResult[_count++] = collection._propertiesResult[index];
 		}
 
-		// Reset counts to avoid double disposing
+		// Reset counts of original collection
 		collection._count = 0;
 
 		return this;
@@ -241,22 +220,18 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 		}
 	}
 
-	/// <summary>
-	/// Tries to return the object to the pool; otherwise it will dispose it so it can be garbage collected.
-	/// </summary>
-	/// <param name="disposing"></param>
-	/// <returns>Returns true when object is disposed (and not returned to the pool).</returns>
-	private bool Dispose(bool disposing)
+	/// <inheritdoc />
+	public void Dispose()
 	{
 		if (_disposed)
 		{
-			return true;
+			return;
 		}
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 		if (_messages is not null)
 		{
-			ValidationMessagePool.Return(_messages, clearArray: true);
+			ValidationMessagePool.Return(_messages, clearArray: false);
 		}
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -266,29 +241,5 @@ public class PropertyValidationResultCollection : IReadOnlyList<PropertyValidati
 		}
 
 		_disposed = true;
-
-		return !Pool.Return(this);
-	}
-
-	/// <inheritdoc />
-	public void Dispose()
-	{
-		if (Dispose(true))
-		{
-			// If disposed, suppress finalization
-			GC.SuppressFinalize(this);
-		}
-	}
-
-	/// <summary>
-	/// Dispose the object using finalize for case developer forgets to dispose it.
-	/// </summary>
-	~PropertyValidationResultCollection()
-	{
-		if (!Dispose(false))
-		{
-			// Reregister for finalization if not disposed (returned to the pool)
-			GC.ReRegisterForFinalize(this);
-		}
 	}
 }

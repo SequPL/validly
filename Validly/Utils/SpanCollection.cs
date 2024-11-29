@@ -20,6 +20,8 @@ public class SpanCollection<TItem> : IReadOnlyList<TItem>, ICollection<TItem>
 	/// <inheritdoc />
 	public bool IsReadOnly => true;
 
+	internal TItem[] BufferArray => _list;
+
 	/// <param name="list"></param>
 	/// <param name="startPosition">Beginning of the buffer</param>
 	/// <param name="endPosition">End of the buffer</param>
@@ -39,12 +41,7 @@ public class SpanCollection<TItem> : IReadOnlyList<TItem>, ICollection<TItem>
 	/// <param name="startPosition"></param>
 	/// <param name="endPosition"></param>
 	/// <param name="count"></param>
-	public void Reset(
-		TItem[] list,
-		int startPosition,
-		int endPosition,
-		int count
-	)
+	public void Reset(TItem[] list, int startPosition, int endPosition, int count)
 	{
 		_list = list;
 		_startPosition = startPosition;
@@ -116,12 +113,12 @@ public class SpanCollection<TItem> : IReadOnlyList<TItem>, ICollection<TItem>
 	{
 		get
 		{
-			if (index < _startPosition || index >= _count)
+			if (index < 0 || index >= _count)
 			{
 				throw new IndexOutOfRangeException();
 			}
 
-			return _list[index];
+			return _list[_startPosition + index];
 		}
 	}
 }

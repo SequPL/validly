@@ -4,10 +4,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>12</LangVersion>
+		<IsPackable>false</IsPackable>
 
 		<Authors>Roman Jámbor</Authors>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

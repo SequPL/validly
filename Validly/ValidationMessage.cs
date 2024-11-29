@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Nodes;
 
 namespace Validly;
 
@@ -18,4 +19,13 @@ public record ValidationMessage(
 	/// Empty validation message
 	/// </summary>
 	public static ValidationMessage Empty = new(string.Empty, string.Empty);
+
+	/// <summary>
+	/// String with comma-separated list of arguments converted to JSON strings
+	/// </summary>
+	/// <remarks>
+	/// Prepared to be used within array brackets like: $"[{ArgsJson}]"
+	/// </remarks>
+	public string ArgsJson { get; } =
+		string.Join(", ", Args.Select(static x => JsonValue.Create(x)?.ToJsonString() ?? "null"));
 }

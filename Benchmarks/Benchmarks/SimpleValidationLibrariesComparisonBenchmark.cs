@@ -77,6 +77,13 @@ public class SimpleValidationLibrariesComparisonBenchmark
 		return result.IsSuccess;
 	}
 
+	// [Benchmark(Description = "Validly (exit-early)")]
+	// public bool ValidlyExitEarly()
+	// {
+	// 	using var result = NumberOfInvalidValues.Validate();
+	// 	return result.IsSuccess;
+	// }
+
 	[Benchmark(Description = "Validot (IsValid)")]
 	public bool ValidotIsValid()
 	{

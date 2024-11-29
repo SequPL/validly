@@ -13,8 +13,10 @@
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 
         <PackageId>Validly.SourceGenerator</PackageId>
-		<Version>1.0.2</Version>
+		<Version>1.1.1</Version>
 		<Description>Source Generator for Validly validation library</Description>
+		<PackageTags>validly valid validator validation annotations attributes source-generator</PackageTags>
+		<IsPackable>true</IsPackable>
     </PropertyGroup>
 
 	<ItemGroup>
@@ -26,6 +28,18 @@
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Update="Validly.SourceGenerator.props" Pack="true" PackagePath="build" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Validly\Validly.csproj"/>
+	</ItemGroup>
+
+	<!--	<ItemGroup Condition="$(Configuration) == 'Debug'">-->
+	<!--		<ProjectReference Include="..\..\Validly\Validly.csproj"/>-->
+	<!--	</ItemGroup>-->
+
+	<!--	<ItemGroup Condition="$(Configuration) != 'Debug'">-->
+	<!--		<PackageReference Include="Validly" Version="1.1.1" />-->
+	<!--	</ItemGroup>-->
 
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
@@ -41,9 +55,5 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
     </ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\Validly\Validly.csproj" />
-	</ItemGroup>
 
 </Project>

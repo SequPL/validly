@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Runtime.CompilerServices;
 using Validly.Validators;
 
@@ -51,7 +50,6 @@ public class CollectionSizeBetweenAttribute : Attribute
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValidationMessage? IsValid<T>(IEnumerable<T>? value)
 	{
 		if (value is null)

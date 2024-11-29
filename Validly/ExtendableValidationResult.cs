@@ -39,8 +39,9 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	private void Reset(int propertiesCount)
 	{
 		_disposed = false;
-		GlobalMessages = GlobalMessagePool.Rent(ValidlyOptions.GlobalMessagesPoolSize);
-		PropertiesResultCollection = PropertyValidationResultCollection.Create(
+		var messages = GlobalMessagePool.Rent(ValidlyOptions.GlobalMessagesPoolSize);
+		GlobalMessages.Reset(messages, 0, messages.Length, 0);
+		PropertiesResultCollection.Reset(
 			propertiesCount,
 			ValidlyOptions.PropertyMessagesPoolSize
 		);
@@ -49,7 +50,7 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 	/// <inheritdoc />
 	bool IResettable.TryReset()
 	{
-		GlobalMessagesCount = 0;
+		GlobalMessages.Clear();
 		return true;
 	}
 
@@ -68,15 +69,13 @@ public class ExtendableValidationResult : ValidationResult, IResettable
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 		if (GlobalMessages is not null)
 		{
-			GlobalMessagePool.Return(GlobalMessages);
-			GlobalMessages = null!;
+			GlobalMessagePool.Return(GlobalMessages.BufferArray);
 		}
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 		if (PropertiesResultCollection is not null)
 		{
 			PropertiesResultCollection.Dispose();
-			PropertiesResultCollection = null!;
 		}
 
 		_disposed = true;
