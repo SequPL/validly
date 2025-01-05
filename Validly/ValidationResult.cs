@@ -94,6 +94,16 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 						FieldName = prop.PropertyDisplayName,
 					})
 				)
+				.Concat(
+					GlobalMessages.Select(error => new ValidationErrorDetail
+					{
+						Detail = error.Message,
+						ResourceKey = error.ResourceKey,
+						Args = error.Args,
+						Pointer = "#",
+						FieldName = null,
+					})
+				)
 				.ToArray(),
 		};
 	}
@@ -105,6 +115,20 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	public string GetProblemDetailsJson()
 	{
 		var sb = new StringBuilder();
+
+		foreach (ValidationMessage error in GlobalMessages)
+		{
+			sb.AppendLine(
+				$$"""
+				    {
+				      "detail": "{{error.Message}}",
+				      "resourceKey": "{{error.ResourceKey}}",
+				      "args": [{{error.ArgsJson}}],
+				      "pointer": "#"
+				    },
+				"""
+			);
+		}
 
 		for (int index = 0; index < PropertiesResultCollection.Count; index++)
 		{
@@ -118,7 +142,7 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 					      "detail": "{{error.Message}}",
 					      "resourceKey": "{{error.ResourceKey}}",
 					      "args": [{{error.ArgsJson}}],
-					      "pointer": "#{{prop.PropertyPath}}",
+					      "pointer": "#/{{prop.PropertyPath}}",
 					      "fieldName": "{{prop.PropertyDisplayName}}"
 					    },
 					"""

@@ -38,7 +38,7 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		) properties
 	)
 	{
-		var methods = properties.Object.Methods.ToDictionary(x => x.MethodName, x => x);
+		var methods = properties.Object.Methods.GroupBy(x => x.MethodName).ToDictionary(x => x.Key, group => group.First());
 
 		// Name of the class with RULEs
 		string rulesClassName = $"{properties.Object.Name}Rules";

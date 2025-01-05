@@ -31,5 +31,5 @@ public class ValidationErrorDetail
 	/// <summary>
 	/// Name of the field
 	/// </summary>
-	public required string FieldName { get; init; }
+	public required string? FieldName { get; init; }
 }
