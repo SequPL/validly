@@ -114,10 +114,13 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 	/// <returns></returns>
 	public string GetProblemDetailsJson()
 	{
-		var sb = new StringBuilder();
+		// Create StringBuilder with estimated size
+		var sb = new StringBuilder(180 + 200 * PropertiesResultCollection.Count + 200 * GlobalMessages.Count);
 
-		foreach (ValidationMessage error in GlobalMessages)
+		for (int globalMessageIndex = 0; globalMessageIndex < GlobalMessages.Count; globalMessageIndex++)
 		{
+			ValidationMessage error = GlobalMessages[globalMessageIndex];
+
 			sb.AppendLine(
 				$$"""
 				    {
@@ -134,8 +137,10 @@ public class ValidationResult : IDisposable, IInternalValidationResult
 		{
 			PropertyValidationResult prop = PropertiesResultCollection.ArrayBuffer[index];
 
-			foreach (ValidationMessage error in prop.Messages)
+			for (int messageIndex = 0; messageIndex < prop.Messages.Count; messageIndex++)
 			{
+				ValidationMessage error = prop.Messages[messageIndex];
+
 				sb.AppendLine(
 					$$"""
 					    {

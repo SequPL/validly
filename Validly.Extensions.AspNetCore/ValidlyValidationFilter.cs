@@ -21,8 +21,10 @@ public class ValidlyValidationFilter : IEndpointFilter
 		EndpointFilterDelegate next
 	)
 	{
-		foreach (var argument in invocationContext.Arguments)
+		for (int argumentIndex = 0; argumentIndex < invocationContext.Arguments.Count; argumentIndex++)
 		{
+			object? argument = invocationContext.Arguments[argumentIndex];
+
 			if (argument is IValidatable validatable)
 			{
 				// Do not use "using"; we don't want to dispose it here.
