@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<PackageId>Validly.Extensions.Validators</PackageId>
-		<Version>1.1.1</Version>
+		<Version>1.1.2</Version>
 		<Description>Basic validation rules for Validly</Description>
 		<PackageTags>validly valid validator validation annotations attributes source-generator</PackageTags>
 		<IsPackable>true</IsPackable>
