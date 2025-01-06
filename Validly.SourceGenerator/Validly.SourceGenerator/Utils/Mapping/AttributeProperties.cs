@@ -12,7 +12,7 @@ internal record AttributeProperties
 		new()
 		{
 			QualifiedName = "Validly.Extensions.Validators.Common.RequiredAttribute",
-			Arguments = EquatableArray<string>.Empty,
+			Arguments = new EquatableArray<string>(new[] { "allowEmptyStrings: true" }),
 		};
 
 	public static readonly AttributeProperties InEnum =

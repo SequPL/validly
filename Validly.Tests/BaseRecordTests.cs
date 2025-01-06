@@ -5,7 +5,7 @@ using Validly.Validators;
 
 namespace Validly.Tests;
 
-[Validatable(UseExitEarly = true)]
+[Validatable(UseAutoValidators = true)]
 public partial record CreateUserRecordRequest
 {
 	[Required]
