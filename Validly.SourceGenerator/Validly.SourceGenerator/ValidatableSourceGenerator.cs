@@ -38,7 +38,9 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		) properties
 	)
 	{
-		var methods = properties.Object.Methods.GroupBy(x => x.MethodName).ToDictionary(x => x.Key, group => group.First());
+		var methods = properties
+			.Object.Methods.GroupBy(x => x.MethodName)
+			.ToDictionary(x => x.Key, group => group.First());
 
 		// Name of the class with RULEs
 		string rulesClassName = $"{properties.Object.Name}Rules";
@@ -415,19 +417,14 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		return validateMethodFilePart;
 	}
 
-	private static string CreateBeforeOrAfterValidateHook(
-		MethodProperties? method
-	)
+	private static string CreateBeforeOrAfterValidateHook(MethodProperties? method)
 	{
 		if (method is null)
 		{
 			return string.Empty;
 		}
 
-		var arguments = string.Join(
-			", ",
-			method.Dependencies.Select(service => $"service{service}")
-		);
+		var arguments = string.Join(", ", method.Dependencies.Select(service => $"service{service}"));
 
 		if ((method.ReturnTypeType & ReturnTypeType.Void) != 0)
 		{
@@ -453,43 +450,43 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			{
 				return $"""
 
-				        // Call {method.MethodName} hook
-				        var resultOf{method.MethodName} = await {method.MethodName}({arguments});
-				        if (resultOf{method.MethodName} is not null) return resultOf{method.MethodName};
-				        """;
+					// Call {method.MethodName} hook
+					var resultOf{method.MethodName} = await {method.MethodName}({arguments});
+					if (resultOf{method.MethodName} is not null) return resultOf{method.MethodName};
+					""";
 			}
 
 			return $"""
 
-			        // Call {method.MethodName} hook
-			        var resultOf{method.MethodName} = {method.MethodName}({arguments});
-			        if (resultOf{method.MethodName} is not null) return new ValueTask<{Consts.ValidationResultGlobalRef}>(resultOf{method.MethodName});
-			        """;
+				// Call {method.MethodName} hook
+				var resultOf{method.MethodName} = {method.MethodName}({arguments});
+				if (resultOf{method.MethodName} is not null) return new ValueTask<{Consts.ValidationResultGlobalRef}>(resultOf{method.MethodName});
+				""";
 		}
 
 		if ((method.ReturnTypeType & ReturnTypeType.AsyncEnumerable) != 0)
 		{
 			return $"""
 
-		        // Call {method.MethodName} hook
-		        await result.AddAsync({method.MethodName}({arguments}));
-		        """;
+				// Call {method.MethodName} hook
+				await result.AddAsync({method.MethodName}({arguments}));
+				""";
 		}
 
 		if ((method.ReturnTypeType & ReturnTypeType.Awaitable) != 0)
 		{
 			return $"""
 
-		        // Call {method.MethodName} hook
-		        result.Add(await {method.MethodName}({arguments}));
-		        """;
+				// Call {method.MethodName} hook
+				result.Add(await {method.MethodName}({arguments}));
+				""";
 		}
 
 		return $"""
 
-	        // Call {method.MethodName} hook
-	        result.Add({method.MethodName}({arguments}));
-	        """;
+			// Call {method.MethodName} hook
+			result.Add({method.MethodName}({arguments}));
+			""";
 	}
 
 	private static void ProcessValidatableProperty(
@@ -529,12 +526,18 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		// Generate RULE
 		rulesClassBuilder.AddRuleForProperty(validatableProperty, attributesWithValidators);
 
-		bool anyAsync = customValidationInterfaceBuilder.Calls.AnyAsync()
+		bool anyAsync =
+			customValidationInterfaceBuilder.Calls.AnyAsync()
 			|| (propertiesObject.BeforeValidateMethod?.ReturnTypeType & ReturnTypeType.Awaitable) != 0
 			|| (propertiesObject.AfterValidateMethod?.ReturnTypeType & ReturnTypeType.Awaitable) != 0;
 
 		// Generate INVOCATION
-		invocationBuilder.AddInvocationForProperty(validatableProperty, attributesWithValidators, propertyCalls, anyAsync);
+		invocationBuilder.AddInvocationForProperty(
+			validatableProperty,
+			attributesWithValidators,
+			propertyCalls,
+			anyAsync
+		);
 	}
 
 	private static void AddAutoValidators(
@@ -544,8 +547,8 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 		bool? useAutoValidators
 	)
 	{
-		// Auto validators are disabled for this object
-		if (useAutoValidators == false)
+		// Auto validators are disabled for this object, or it's a record's "EqualityContract" property
+		if (useAutoValidators == false || validatableProperty.PropertyName == "EqualityContract")
 		{
 			return;
 		}
