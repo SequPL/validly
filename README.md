@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Validly)](https://www.nuget.org/packages/Validly)
 [![License MIT](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)](https://opensource.org/licenses/MIT)<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This repository contains a powerful, efficient, and highly customizable validation library for .NET, leveraging the capabilities of C# Source Generators to provide compile-time validation logic generation. The library is designed to simplify model validation in .NET applications by automatically generating validation code based on attributes and custom rules, reducing runtime overhead and enhancing code maintainability.
@@ -103,6 +103,7 @@ Separating validations from the model may even be considered an anti-pattern or 
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Whitepalko"><img src="https://avatars.githubusercontent.com/u/47061310?v=4?s=100" width="100px;" alt="Whitepalko"/><br /><sub><b>Whitepalko</b></sub></a><br /><a href="https://github.com/Hookyns/validly/commits?author=Whitepalko" title="Code">💻</a> <a href="#ideas-Whitepalko" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/TallasDev"><img src="https://avatars.githubusercontent.com/u/30439223?v=4?s=100" width="100px;" alt="TallasDev"/><br /><sub><b>TallasDev</b></sub></a><br /><a href="#ideas-TallasDev" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/completezero"><img src="https://avatars.githubusercontent.com/u/15210432?v=4?s=100" width="100px;" alt="completezero"/><br /><sub><b>completezero</b></sub></a><br /><a href="https://github.com/Hookyns/validly/commits?author=completezero" title="Tests">⚠️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Stepami"><img src="https://avatars.githubusercontent.com/u/36167798?v=4?s=100" width="100px;" alt="Степан"/><br /><sub><b>Степан</b></sub></a><br /><a href="https://github.com/Hookyns/validly/commits?author=Stepami" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
