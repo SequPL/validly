@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace Validly;
@@ -37,7 +36,7 @@ public partial record ValidationMessage(
 	/// Prepared to be used within array brackets like: $"[{ArgsJson}]"
 	/// </remarks>
 	public string ArgsJson { get; } =
-		string.Join(", ", Args.Select(static x => JsonValue.Create(x)?.ToJsonString(ArgumentSerializerOptions) ?? "null"));
+		string.Join(", ", Args.Select(static x => JsonSerializer.Serialize(x, ArgumentSerializerOptions)));
 
 	[JsonSerializable(typeof(object))]
 	[JsonSerializable(typeof(decimal))]
