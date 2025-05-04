@@ -106,6 +106,7 @@ internal static class SymbolMapper
 				char c => $"'{c}'",
 				bool b => b.ToString().ToLowerInvariant(),
 				double d => d.ToString(new NumberFormatInfo { NumberDecimalSeparator = "." }),
+				float f => f.ToString(new NumberFormatInfo { NumberDecimalSeparator = "." }),
 				_ => constant.Value?.ToString() ?? "null",
 			},
 			_ => constant.Value?.ToString() ?? "null",
