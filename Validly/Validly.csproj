@@ -8,10 +8,8 @@
 		<PackageTags>validly valid validator validation annotations attributes source-generator</PackageTags>
 		<IsPackable>true</IsPackable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	</PropertyGroup>
-
-	<PropertyGroup>
 		<JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
 	<ItemGroup>

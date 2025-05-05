@@ -16,13 +16,8 @@ public partial record ValidationMessage(
 	params object?[] Args
 )
 {
-	private static readonly JsonSerializerOptions ArgumentSerializerOptions = new()
-	{
-		TypeInfoResolverChain =
-		{
-			ArgumentJsonContext.Default
-		}
-	};
+	private static readonly JsonSerializerOptions ArgumentSerializerOptions =
+		new() { TypeInfoResolverChain = { ArgumentJsonContext.Default } };
 
 	/// <summary>
 	/// Empty validation message
@@ -39,9 +34,19 @@ public partial record ValidationMessage(
 		string.Join(", ", Args.Select(static x => JsonSerializer.Serialize(x, ArgumentSerializerOptions)));
 
 	[JsonSerializable(typeof(object))]
-	[JsonSerializable(typeof(decimal))]
-	[JsonSerializable(typeof(int))]
 	[JsonSerializable(typeof(string))]
+	[JsonSerializable(typeof(char))]
+	[JsonSerializable(typeof(decimal))]
+	[JsonSerializable(typeof(byte))]
+	[JsonSerializable(typeof(short))]
+	[JsonSerializable(typeof(int))]
+	[JsonSerializable(typeof(double))]
+	[JsonSerializable(typeof(float))]
+	[JsonSerializable(typeof(bool))]
+	[JsonSerializable(typeof(Guid))]
+	[JsonSerializable(typeof(DateTime))]
+	[JsonSerializable(typeof(TimeSpan))]
+	[JsonSerializable(typeof(DateTimeOffset))]
 	[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization)]
 	private partial class ArgumentJsonContext : JsonSerializerContext;
 }

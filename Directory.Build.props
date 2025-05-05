@@ -17,4 +17,15 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
+
+	<Target Name="UseExplicitPackageVersions" BeforeTargets="GenerateNuspec">
+		<ItemGroup>
+			<_ProjectReferencesWithVersions Condition="'%(FullPath)' != ''">
+				<PackageVersion>@(ProjectReference->'%(PackageVersion)')</PackageVersion>
+			</_ProjectReferencesWithVersions>
+			<_ProjectReferencesWithVersions Condition="'%(Identity)' != '' And '%(PackageVersion)' != ''">
+				<ProjectVersion>$([System.String]::new('%(PackageVersion)').Replace('~',%(ProjectVersion)))</ProjectVersion>
+			</_ProjectReferencesWithVersions>
+		</ItemGroup>
+	</Target>
 </Project>

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net7.0;net8.0</TargetFrameworks>
 		<PackageId>Validly.Extensions.AspNetCore</PackageId>
-		<Version>1.1.1</Version>
+		<Version>1.1.2</Version>
 		<Description>Validly extensions for ASP.NET Core</Description>
 		<PackageTags>validly valid validator validation annotations attributes source-generator</PackageTags>
 		<IsPackable>true</IsPackable>
@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Validly\Validly.csproj"/>
+		<ProjectReference Include="..\Validly\Validly.csproj" PackageVersion="[~,2.0.0)"/>
 	</ItemGroup>
 
 	<ItemGroup>

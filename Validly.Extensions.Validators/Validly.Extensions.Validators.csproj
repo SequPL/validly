@@ -8,10 +8,11 @@
 		<PackageTags>validly valid validator validation annotations attributes source-generator</PackageTags>
 		<IsPackable>true</IsPackable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Validly\Validly.csproj"/>
+		<ProjectReference Include="..\Validly\Validly.csproj" PackageVersion="[~,2.0.0)"/>
 	</ItemGroup>
 
 <!--	<ItemGroup Condition="$(Configuration) == 'Debug'">-->

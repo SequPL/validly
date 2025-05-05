@@ -30,7 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Validly\Validly.csproj"/>
+		<ProjectReference Include="..\..\Validly\Validly.csproj" PackageVersion="[~,2.0.0)"/>
 	</ItemGroup>
 
 	<!--	<ItemGroup Condition="$(Configuration) == 'Debug'">-->
