@@ -50,6 +50,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 		return new ObjectProperties
 		{
+			TypeSymbol = typeSymbol,
 			UseAutoValidators = GetUseAutoValidatorsValue(validatableAttribute),
 			ExitEarly = GetGetExitEarlyValue(validatableAttribute),
 			Usings = new EquatableArray<string>(usings.Select(static usingSyntax => usingSyntax.ToString()).ToArray()),

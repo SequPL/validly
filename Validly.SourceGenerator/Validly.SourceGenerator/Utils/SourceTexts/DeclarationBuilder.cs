@@ -21,6 +21,7 @@ internal class DeclarationBuilder
 	private string _partial = string.Empty;
 	private string _accessModifier = "public";
 	private string _static = string.Empty;
+	private INamedTypeSymbol _parentType;
 
 	private DeclarationBuilder() { }
 
@@ -72,17 +73,7 @@ internal class DeclarationBuilder
 
 	public DeclarationBuilder SetAccessModifier(Accessibility accessModifier)
 	{
-		_accessModifier = accessModifier switch
-		{
-			Accessibility.Public => "public",
-			Accessibility.Private => "private",
-			Accessibility.Protected => "protected",
-			Accessibility.Internal => "internal",
-			Accessibility.ProtectedOrInternal => "protected internal",
-			Accessibility.ProtectedAndInternal => "private protected",
-			_ => "public",
-		};
-
+		_accessModifier = AccessModifierToString(accessModifier);
 		return this;
 	}
 
@@ -116,6 +107,26 @@ internal class DeclarationBuilder
 		return this;
 	}
 
+	public DeclarationBuilder AddParent(INamedTypeSymbol parentType)
+	{
+		_parentType = parentType;
+		return this;
+	}
+
+	private static string AccessModifierToString(Accessibility accessModifier)
+	{
+		return accessModifier switch
+		{
+			Accessibility.Public => "public",
+			Accessibility.Private => "private",
+			Accessibility.Protected => "protected",
+			Accessibility.Internal => "internal",
+			Accessibility.ProtectedOrInternal => "protected internal",
+			Accessibility.ProtectedAndInternal => "private protected",
+			_ => "public",
+		};
+	}
+
 	private static readonly Regex MultiWhitespaceReplaceRegex = new(@"\s+", RegexOptions.Compiled);
 
 	public string Build()
@@ -125,7 +136,14 @@ internal class DeclarationBuilder
 		// Add USINGs
 		AppendUsings(builder);
 
-		var classBuilder = new FileBuilder().AppendLine(
+		var classBuilder = new FileBuilder();
+
+		if(_parentType is not null)
+		{
+			classBuilder.AppendLine($"{AccessModifierToString(_parentType.DeclaredAccessibility)} partial {(_parentType!.IsRecord ? "record" : "class")} {_parentType!.Name}{Environment.NewLine}{{{Environment.NewLine}");
+		}
+
+		classBuilder.AppendLine(
 			MultiWhitespaceReplaceRegex.Replace(
 				$"{_accessModifier} {_static} {_partial} {_declarationKeyword} {_name}",
 				" "
@@ -146,6 +164,9 @@ internal class DeclarationBuilder
 		}
 
 		classBuilder.AddPart();
+
+		if (_parentType is not null)		
+			classBuilder.AppendLine("}");		
 
 		// } CLASS body END
 		classBuilder.AppendLine("}");
