@@ -35,7 +35,7 @@ public partial class CreateUserRequest
     [EmailAddress]
     public string Email { get; set; }
 
-    [Range(18, 99)]
+    [Between(18, 99)]
     public int Age { get; set; }
 }
 ```
