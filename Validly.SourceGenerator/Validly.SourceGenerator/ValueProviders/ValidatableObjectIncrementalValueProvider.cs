@@ -37,6 +37,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 		var membersSymbols = typeSymbol.GetMembers();
 		var methods = GetMethods(membersSymbols, semanticModel);
 		var properties = GetProperties(membersSymbols, semanticModel);
+		var containingTypes = GetContainingTypes(typeSymbol);
 
 		bool inheritsValidatableObject =
 			typeSymbol
@@ -64,6 +65,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 			InheritsValidatableObject = inheritsValidatableObject,
 			BeforeValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.BeforeValidateMethodName),
 			AfterValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.AfterValidateMethodName),
+			ContainingTypes = new EquatableArray<ContainingTypeInfo>(containingTypes),
 		};
 	}
 
@@ -175,5 +177,29 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 		var usings = target is CompilationUnitSyntax cus ? cus.Usings.ToArray() : Array.Empty<UsingDirectiveSyntax>();
 		return usings;
+	}
+
+	private static ContainingTypeInfo[] GetContainingTypes(INamedTypeSymbol typeSymbol)
+	{
+		var containingTypes = new List<ContainingTypeInfo>();
+		var currentContainingType = typeSymbol.ContainingType;
+
+		// Walk up the containing type hierarchy
+		while (currentContainingType is not null)
+		{
+			containingTypes.Add(new ContainingTypeInfo
+			{
+				Name = currentContainingType.Name,
+				ClassOrRecordKeyword = currentContainingType.IsRecord ? "record" : "class",
+				Accessibility = currentContainingType.DeclaredAccessibility,
+			});
+
+			currentContainingType = currentContainingType.ContainingType;
+		}
+
+		// Reverse to get outermost to innermost order
+		containingTypes.Reverse();
+
+		return containingTypes.ToArray();
 	}
 }

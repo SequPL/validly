@@ -62,4 +62,34 @@ internal record ObjectProperties
 	/// AfterValidate() method
 	/// </summary>
 	public required MethodProperties? AfterValidateMethod { get; init; }
+
+	/// <summary>
+	/// Containing types hierarchy (for nested classes)
+	/// </summary>
+	/// <remarks>
+	/// Ordered from outermost to innermost parent.
+	/// Empty if the class is not nested.
+	/// </remarks>
+	public required EquatableArray<ContainingTypeInfo> ContainingTypes { get; init; }
+}
+
+/// <summary>
+/// Information about a containing (parent) type for nested classes
+/// </summary>
+internal record ContainingTypeInfo
+{
+	/// <summary>
+	/// Name of the containing type
+	/// </summary>
+	public required string Name { get; init; }
+
+	/// <summary>
+	/// Class or record keyword
+	/// </summary>
+	public required string ClassOrRecordKeyword { get; init; }
+
+	/// <summary>
+	/// Access modifier
+	/// </summary>
+	public required Accessibility Accessibility { get; init; }
 }
