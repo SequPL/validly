@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFramework>netstandard2.1</TargetFramework>
 		<PackageId>Validly</PackageId>
 		<Version>1.2.0</Version>
 		<Description>Powerful, efficient, and highly customizable validation library for .NET, leveraging the capabilities of C# Source Generators to provide compile-time validation logic generation.</Description>

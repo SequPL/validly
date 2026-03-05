@@ -6,6 +6,8 @@ namespace Validly.SourceGenerator.Dtos;
 
 internal record ObjectProperties
 {
+	public required INamedTypeSymbol TypeSymbol { get; init; }
+
 	/// <summary>
 	/// Enables/disables auto validators
 	/// </summary>
