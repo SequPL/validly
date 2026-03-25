@@ -191,7 +191,12 @@ internal static class ValidatableObjectIncrementalValueProvider
 			containingTypes.Add(new ContainingTypeInfo
 			{
 				Name = currentContainingType.Name,
-				ClassOrRecordKeyword = currentContainingType.IsRecord ? "record" : "class",
+				ClassOrRecordKeyword = currentContainingType.TypeKind switch
+				{
+					TypeKind.Interface => "interface",
+					TypeKind.Struct => currentContainingType.IsRecord ? "record struct" : "struct",
+					_ => currentContainingType.IsRecord ? "record" : "class",
+				},
 				Accessibility = currentContainingType.DeclaredAccessibility,
 			});
 

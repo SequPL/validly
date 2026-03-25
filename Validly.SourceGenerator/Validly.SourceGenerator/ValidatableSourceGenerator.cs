@@ -170,7 +170,10 @@ public class ValidatableSourceGenerator : IIncrementalGenerator
 			+ Environment.NewLine
 			+ (properties.Object.Namespace is null ? string.Empty : "}");
 
-		context.AddSource($"{properties.Object.Name}.Validator.g.cs", SourceText.From(sourceText, Encoding.UTF8));
+		var containingPrefix = properties.Object.ContainingTypes.GetArray() is { Length: > 0 } ct
+			? string.Join(".", ct.Select(t => t.Name)) + "."
+			: string.Empty;
+		context.AddSource($"{containingPrefix}{properties.Object.Name}.Validator.g.cs", SourceText.From(sourceText, Encoding.UTF8));
 	}
 
 	private static void AppendDependenciesOfBeforeAndAfterMethods(

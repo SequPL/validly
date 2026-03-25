@@ -140,7 +140,13 @@ internal class DeclarationBuilder
 
 		if(_parentType is not null)
 		{
-			classBuilder.AppendLine($"{AccessModifierToString(_parentType.DeclaredAccessibility)} partial {(_parentType!.IsRecord ? "record" : "class")} {_parentType!.Name}{Environment.NewLine}{{{Environment.NewLine}");
+			var parentKeyword = _parentType!.TypeKind switch
+			{
+				TypeKind.Interface => "interface",
+				TypeKind.Struct => _parentType.IsRecord ? "record struct" : "struct",
+				_ => _parentType.IsRecord ? "record" : "class",
+			};
+			classBuilder.AppendLine($"{AccessModifierToString(_parentType.DeclaredAccessibility)} partial {parentKeyword} {_parentType!.Name}{Environment.NewLine}{{{Environment.NewLine}");
 		}
 
 		classBuilder.AppendLine(
