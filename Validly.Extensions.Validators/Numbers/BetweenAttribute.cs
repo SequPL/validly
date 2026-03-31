@@ -60,7 +60,17 @@ public class BetweenAttribute : Attribute
 	{
 		return value is not null && (value < _min || value > _max) ? _message : null;
 	}
-
+	
+	/// <summary>
+	/// Validate the value
+	/// </summary>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValidationMessage? IsValid(double? value)
+	{
+		return value is not null && ((decimal)value.Value < _min || (decimal)value.Value > _max) ? _message : null;
+	}
 	/// <summary>
 	/// Validate the value
 	/// </summary>
