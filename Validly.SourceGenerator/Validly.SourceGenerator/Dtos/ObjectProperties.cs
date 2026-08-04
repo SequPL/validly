@@ -6,8 +6,6 @@ namespace Validly.SourceGenerator.Dtos;
 
 internal record ObjectProperties
 {
-	public required INamedTypeSymbol TypeSymbol { get; init; }
-
 	/// <summary>
 	/// Enables/disables auto validators
 	/// </summary>
@@ -39,6 +37,15 @@ internal record ObjectProperties
 	/// Name of the validator without the "Validator" suffix
 	/// </summary>
 	public required string Name { get; init; }
+	/// <summary>
+	/// Unique source hint name for the validator.
+	/// </summary>
+	public required string HintName { get; init; }
+
+	/// <summary>
+	/// Partial declarations that contain a nested validatable type, ordered outermost first.
+	/// </summary>
+	public required EquatableArray<string> ContainingTypeDeclarations { get; init; }
 
 	/// <summary>
 	/// Object inherits
@@ -70,33 +77,4 @@ internal record ObjectProperties
 	/// </summary>
 	public required MethodProperties? AfterValidateMethod { get; init; }
 
-	/// <summary>
-	/// Containing types hierarchy (for nested classes)
-	/// </summary>
-	/// <remarks>
-	/// Ordered from outermost to innermost parent.
-	/// Empty if the class is not nested.
-	/// </remarks>
-	public required EquatableArray<ContainingTypeInfo> ContainingTypes { get; init; }
-}
-
-/// <summary>
-/// Information about a containing (parent) type for nested classes
-/// </summary>
-internal record ContainingTypeInfo
-{
-	/// <summary>
-	/// Name of the containing type
-	/// </summary>
-	public required string Name { get; init; }
-
-	/// <summary>
-	/// Class or record keyword
-	/// </summary>
-	public required string ClassOrRecordKeyword { get; init; }
-
-	/// <summary>
-	/// Access modifier
-	/// </summary>
-	public required Accessibility Accessibility { get; init; }
 }

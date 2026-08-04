@@ -37,7 +37,6 @@ internal static class ValidatableObjectIncrementalValueProvider
 		var membersSymbols = typeSymbol.GetMembers();
 		var methods = GetMethods(membersSymbols, semanticModel);
 		var properties = GetProperties(membersSymbols, semanticModel);
-		var containingTypes = GetContainingTypes(typeSymbol);
 
 		bool inheritsValidatableObject =
 			typeSymbol
@@ -51,13 +50,16 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 		return new ObjectProperties
 		{
-			TypeSymbol = typeSymbol,
 			UseAutoValidators = GetUseAutoValidatorsValue(validatableAttribute),
 			ExitEarly = GetGetExitEarlyValue(validatableAttribute),
 			Usings = new EquatableArray<string>(usings.Select(static usingSyntax => usingSyntax.ToString()).ToArray()),
 			ClassOrRecordKeyword = typeSymbol.IsRecord ? "record" : "class",
 			Accessibility = typeSymbol.DeclaredAccessibility,
 			Name = typeSymbol.Name,
+			HintName = GetHintName(typeSymbol),
+			ContainingTypeDeclarations = new EquatableArray<string>(
+				GetContainingTypeDeclarations(targetNode).ToArray()
+			),
 			Namespace = typeSymbol.ContainingNamespace.CanBeReferencedByName
 				? typeSymbol.ContainingNamespace.ToString()
 				: null,
@@ -67,10 +69,44 @@ internal static class ValidatableObjectIncrementalValueProvider
 			IsSealed = typeSymbol.IsSealed,
 			BeforeValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.BeforeValidateMethodName),
 			AfterValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.AfterValidateMethodName),
-			ContainingTypes = new EquatableArray<ContainingTypeInfo>(containingTypes),
 		};
 	}
 
+	private static IEnumerable<string> GetContainingTypeDeclarations(TypeDeclarationSyntax targetNode)
+	{
+		return targetNode
+			.Ancestors()
+			.OfType<TypeDeclarationSyntax>()
+			.Reverse()
+			.Select(static declaration =>
+			{
+				var declarationKeyword =
+					declaration is RecordDeclarationSyntax recordDeclaration
+					&& !string.IsNullOrEmpty(recordDeclaration.ClassOrStructKeyword.Text)
+						? $"{recordDeclaration.Keyword.Text} {recordDeclaration.ClassOrStructKeyword.Text}"
+						: declaration.Keyword.Text;
+				var typeName = $"{declaration.Identifier}{declaration.TypeParameterList}";
+				var modifiers = declaration.Modifiers.ToString();
+
+				return string.IsNullOrEmpty(modifiers)
+					? $"{declarationKeyword} {typeName}"
+					: $"{modifiers} {declarationKeyword} {typeName}";
+			});
+	}
+
+	private static string GetHintName(INamedTypeSymbol typeSymbol)
+	{
+		var typeNames = new Stack<string>();
+		for (var current = typeSymbol; current is not null; current = current.ContainingType)
+		{
+			typeNames.Push(current.MetadataName.Replace('`', '_'));
+		}
+
+		var typePath = string.Join(".", typeNames);
+		return typeSymbol.ContainingNamespace.CanBeReferencedByName
+			? $"{typeSymbol.ContainingNamespace}.{typePath}"
+			: typePath;
+	}
 	private static PropertyProperties[] GetProperties(
 		ImmutableArray<ISymbol> membersSymbols,
 		SemanticModel semanticModel
@@ -185,32 +221,4 @@ internal static class ValidatableObjectIncrementalValueProvider
 		return usings;
 	}
 
-	private static ContainingTypeInfo[] GetContainingTypes(INamedTypeSymbol typeSymbol)
-	{
-		var containingTypes = new List<ContainingTypeInfo>();
-		var currentContainingType = typeSymbol.ContainingType;
-
-		// Walk up the containing type hierarchy
-		while (currentContainingType is not null)
-		{
-			containingTypes.Add(new ContainingTypeInfo
-			{
-				Name = currentContainingType.Name,
-				ClassOrRecordKeyword = currentContainingType.TypeKind switch
-				{
-					TypeKind.Interface => "interface",
-					TypeKind.Struct => currentContainingType.IsRecord ? "record struct" : "struct",
-					_ => currentContainingType.IsRecord ? "record" : "class",
-				},
-				Accessibility = currentContainingType.DeclaredAccessibility,
-			});
-
-			currentContainingType = currentContainingType.ContainingType;
-		}
-
-		// Reverse to get outermost to innermost order
-		containingTypes.Reverse();
-
-		return containingTypes.ToArray();
-	}
 }
