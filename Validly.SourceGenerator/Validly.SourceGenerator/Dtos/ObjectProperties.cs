@@ -37,6 +37,15 @@ internal record ObjectProperties
 	/// Name of the validator without the "Validator" suffix
 	/// </summary>
 	public required string Name { get; init; }
+	/// <summary>
+	/// Unique source hint name for the validator.
+	/// </summary>
+	public required string HintName { get; init; }
+
+	/// <summary>
+	/// Partial declarations that contain a nested validatable type, ordered outermost first.
+	/// </summary>
+	public required EquatableArray<string> ContainingTypeDeclarations { get; init; }
 
 	/// <summary>
 	/// Object inherits
