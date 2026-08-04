@@ -5,7 +5,7 @@ namespace Validly;
 /// <summary>
 /// Validation context with information about the object being validated
 /// </summary>
-public record ValidationContext : IDisposable
+public sealed record ValidationContext : IDisposable
 {
 	private static readonly ObjectPool<ValidationContext> Pool = ObjectPool.Create<ValidationContext>();
 
@@ -13,6 +13,7 @@ public record ValidationContext : IDisposable
 	private object _object = null!;
 	private string _propertyName = string.Empty;
 	private string _propertyDisplayName = string.Empty;
+	private bool _tryingToReturn;
 
 	/// <summary>
 	/// Root object that is being validated
@@ -80,6 +81,17 @@ public record ValidationContext : IDisposable
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		// If Disposed when trying to Return, it's (probably) Dispose called by DisposableObjectPool.
+		// Return had to be rejected so the object should be really disposed.
+		if (_tryingToReturn)
+		{
+			_rootObject = null!;
+			_object = null!;
+			return;
+		}
+
+		_tryingToReturn = true;
 		Pool.Return(this);
+		_tryingToReturn = false;
 	}
 }

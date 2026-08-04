@@ -95,6 +95,17 @@ internal class DeclarationBuilder
 		return this;
 	}
 
+	public DeclarationBuilder AddMemberIf(SourceTextSectionBuilder memberSource, bool condition)
+	{
+		if (!condition)
+		{
+			return this;
+		}
+
+		_memberSources.Add(memberSource);
+		return this;
+	}
+
 	public DeclarationBuilder Partial()
 	{
 		_partial = "partial";
@@ -213,16 +224,7 @@ internal class DeclarationBuilder
 			return;
 		}
 
-		if (_baseClasses.Count > 0)
-		{
-			builder.Append(string.Join(", ", _baseClasses));
-		}
-
-		if (_interfaces.Count > 0)
-		{
-			builder.Append(string.Join(", ", _interfaces));
-		}
-
+		builder.Append(string.Join(", ", _baseClasses.Concat(_interfaces)));
 		builder.AppendLine();
 	}
 

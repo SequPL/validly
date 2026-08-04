@@ -10,7 +10,7 @@ namespace Validly;
 /// <param name="Message">Translated message, or default message (e.g., in English)</param>
 /// <param name="ResourceKey">Resource key for localization, which may contain placeholders (e.g., {0}) for passed arguments.</param>
 /// <param name="Args">Arguments</param>
-public partial record ValidationMessage(
+public sealed partial record ValidationMessage(
 	[StringSyntax(StringSyntaxAttribute.CompositeFormat)] string Message,
 	string ResourceKey,
 	params object?[] Args
@@ -39,16 +39,23 @@ public partial record ValidationMessage(
 	[JsonSerializable(typeof(string))]
 	[JsonSerializable(typeof(char))]
 	[JsonSerializable(typeof(decimal))]
-	[JsonSerializable(typeof(byte))]
-	[JsonSerializable(typeof(short))]
-	[JsonSerializable(typeof(int))]
 	[JsonSerializable(typeof(double))]
 	[JsonSerializable(typeof(float))]
 	[JsonSerializable(typeof(bool))]
+	[JsonSerializable(typeof(byte))]
+	[JsonSerializable(typeof(short))]
+	[JsonSerializable(typeof(int))]
+	[JsonSerializable(typeof(uint))]
+	[JsonSerializable(typeof(long))]
+	[JsonSerializable(typeof(ulong))]
 	[JsonSerializable(typeof(Guid))]
 	[JsonSerializable(typeof(DateTime))]
 	[JsonSerializable(typeof(TimeSpan))]
 	[JsonSerializable(typeof(DateTimeOffset))]
+#if NET5_0_OR_GREATER
+	[JsonSerializable(typeof(DateOnly))]
+	[JsonSerializable(typeof(TimeOnly))]
+#endif
 	[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization)]
 	private partial class ArgumentJsonContext : JsonSerializerContext;
 }

@@ -64,6 +64,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 			Properties = new EquatableArray<PropertyProperties>(properties),
 			Methods = new EquatableArray<MethodProperties>(methods),
 			InheritsValidatableObject = inheritsValidatableObject,
+			IsSealed = typeSymbol.IsSealed,
 			BeforeValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.BeforeValidateMethodName),
 			AfterValidateMethod = methods.FirstOrDefault(static m => m.MethodName == Consts.AfterValidateMethodName),
 			ContainingTypes = new EquatableArray<ContainingTypeInfo>(containingTypes),
@@ -119,7 +120,9 @@ internal static class ValidatableObjectIncrementalValueProvider
 	{
 		if (
 			validatableAttribute
-				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.UseAutoValidators))
+				.NamedArguments.FirstOrDefault(static x =>
+					x.Key == Consts.ValidatableAttributeUseAutoValidatorsPropertyName
+				)
 				.Value.Value
 			is true
 		)
@@ -129,7 +132,9 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 		if (
 			validatableAttribute
-				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.NoAutoValidators))
+				.NamedArguments.FirstOrDefault(static x =>
+					x.Key == Consts.ValidatableAttributeNoAutoValidatorsPropertyName
+				)
 				.Value.Value
 			is true
 		)
@@ -144,7 +149,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 	{
 		if (
 			validatableAttribute
-				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.UseExitEarly))
+				.NamedArguments.FirstOrDefault(static x => x.Key == Consts.ValidatableAttributeUseExitEarlyPropertyName)
 				.Value.Value
 			is true
 		)
@@ -154,7 +159,7 @@ internal static class ValidatableObjectIncrementalValueProvider
 
 		if (
 			validatableAttribute
-				.NamedArguments.FirstOrDefault(static x => x.Key == nameof(ValidatableAttribute.NoExitEarly))
+				.NamedArguments.FirstOrDefault(static x => x.Key == Consts.ValidatableAttributeNoAExitEarlyPropertyName)
 				.Value.Value
 			is true
 		)
