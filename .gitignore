@@ -8,3 +8,4 @@ riderModule.iml
 /Benchmarks/**/*.csv
 .idea/
 Validly.sln.DotSettings.user
+/Validly.SourceGenerator/Validly.SourceGenerator/Generated/PolySharp.SourceGenerators/PolySharp.SourceGenerators.PolyfillsGenerator/System.Diagnostics.CodeAnalysis.AllowNullAttribute.g.cs
